@@ -14,7 +14,7 @@
 
 if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) || get_option( 'ninja_forms_load_deprecated', FALSE ) ) {
 
-  include 'deprecated/ninja-forms-intel.php';
+  //include 'deprecated/ninja-forms-intel.php';
 
 } else {
 
@@ -22,7 +22,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
    * Class NF_Intel
    */
   final class NF_Intel {
-    const VERSION = '3.0.0';
+    const VERSION = '3.0.3';
     const SLUG    = 'intel';
     const NAME    = 'Intelligence';
     const AUTHOR  = 'LevelTen';
@@ -51,11 +51,6 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     public static $url = '';
 
     /**
-     * @var Mailchimp
-     */
-    private $_api;
-
-    /**
      * Main Plugin Instance
      *
      * Insures that only one instance of a plugin class exists in memory at any one
@@ -64,10 +59,9 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
      * @since 3.0
      * @static
      * @static var array $instance
-     * @return NF_MailChimp Highlander Instance
+     * @return NF_Intel Instance
      */
-    public static function instance()
-    {
+    public static function instance() {
 
       if ( !isset( self::$instance ) && !( self::$instance instanceof NF_Intel ) ) {
         self::$instance = new NF_Intel();
@@ -85,16 +79,11 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     }
 
     /**
-     * NF_MailChimp constructor.
+     * NF_Intel constructor.
      *
      */
-    public function __construct()
-    {
+    public function __construct() {
 
-      if ( ! function_exists( 'curl_version' ) ) {
-        add_action( 'admin_notices', array( $this, 'curl_error' ) );
-        return false;
-      }
       //add_action( 'admin_init', array( $this, 'setup_license' ) );
       //add_filter( 'ninja_forms_register_fields', array( $this, 'register_fields' ) );
       add_filter( 'ninja_forms_register_actions', array( $this, 'register_actions' ) );
@@ -107,6 +96,10 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       // Add our metabox for editing field values
       add_action( 'add_meta_boxes', array( $this, 'add_metaboxes' ) );
 
+      if (!$this->is_setup()) {
+        add_action( 'admin_menu', array($this, 'site_menu'));
+      }
+
 //Intel_Df::watchdog('NF_Intel construct', 'ok');
     }
 
@@ -116,18 +109,6 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
 
     public function ninja_forms_loaded() {
       new NF_Intel_Admin_Metaboxes_Submission();
-    }
-
-    /**
-     * Register Fields
-     *
-     * @param array $actions
-     * @return array $actions
-     */
-    public function register_fields($actions) {
-      //$actions[ 'mailchimp-optin' ] = new NF_MailChimp_Fields_OptIn();
-
-      return $actions;
     }
 
     /**
@@ -148,7 +129,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     public function field_settings_groups($groups) {
       $groups['tracking'] = array(
         'id' => 'tracking',
-        'label' => __( 'Tracking', 'ninja-forms-intel' ),
+        'label' => __( 'Submission tracking', 'ninja-forms-intel' ),
         'priority' => 600,
       );
       return $groups;
@@ -177,135 +158,10 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     /**
      * Setup License
      */
-    public function setup_license()
-    {
+    public function setup_license() {
       if ( ! class_exists( 'NF_Extension_Updater' ) ) return;
 
       new NF_Extension_Updater( self::NAME, self::VERSION, self::AUTHOR, __FILE__, self::SLUG );
-    }
-
-    /*
-     * API
-     */
-
-    public function get_lists()
-    {
-      if( ! $this->api() ) return array();
-
-      $lists = array();
-
-      try {
-        $response = $this->api()->call('lists/list', array());
-      } catch( Exception $e ){
-        return $lists;
-      }
-
-      foreach( $response[ 'data' ] as $data ) {
-
-        Ninja_Forms()->update_setting( 'mail_chimp_list_' . $data[ 'id' ], $data[ 'name' ] );
-
-        $lists[] = array(
-          'value' => $data[ 'id' ],
-          'label' => $data[ 'name' ],
-          'groups' => $this->get_list_groups( $data[ 'id' ] ),
-          'fields' => $this->get_list_merge_vars( $data[ 'id' ] )
-        );
-      }
-
-      return $lists;
-    }
-
-    public function get_list_merge_vars( $list_id )
-    {
-      if( ! $this->api() ) return array();
-
-      $response = $this->api()->lists->mergeVars( array( $list_id ) );
-
-      $merge_vars = array();
-      $list = $response[ 'data' ][ 0 ];
-      foreach( $list[ 'merge_vars' ] as $merge_var ){
-
-        $required_text = ( $merge_var[ 'req' ] ) ? ' <small style="color:red">(required)</small>' : '';
-
-        $merge_vars[] = array(
-          'value' => $list[ 'id' ] . '_' . $merge_var[ 'tag' ],
-          'label' => $merge_var[ 'name' ] . $required_text
-        );
-      }
-
-      return $merge_vars;
-    }
-
-    public function get_list_groups( $list_id )
-    {
-      if( ! $this->api() ) return array();
-
-      try {
-        $response = $this->api()->lists->interestGroupings($list_id);
-      }  catch( Mailchimp_Error $e ) {
-        return array();
-      } catch( Exception $e ) {
-        // TODO: Log error for System Status page.
-        return array();
-      }
-
-      $groups = array();
-
-      if( $response ) {
-        foreach( $response as $grouping ) {
-          foreach ($grouping['groups'] as $group) {
-            $groups[] = array(
-              'value' => $list_id . '_group_' . $grouping['id'] . '_' . $group['name'],
-              'label' => $group['name']
-            );
-          }
-        }
-      }
-
-      return $groups;
-    }
-
-    public function subscribe( $list_id, $merge_vars, $double_opt_in )
-    {
-      try {
-        return NF_MailChimp()->api()->call('lists/subscribe', array(
-          'id' => $list_id,
-          'email' => array( 'email' => $merge_vars[ 'EMAIL' ] ),
-          'merge_vars' => $merge_vars,
-          'double_optin' => $double_opt_in,
-          'update_existing' => true,
-          'replace_interests' => false,
-          'send_welcome' => false,
-        ));
-      } catch( Mailchimp_Error $e ) {
-        // TODO: Log error for System Status page.
-        return array( 'error' => $e->getMessage() );
-      } catch( Exception $e ) {
-        // TODO: Log error for System Status page.
-        return FALSE;
-      }
-    }
-
-    public function api()
-    {
-      if( ! $this->_api ) {
-
-        $debug = defined('WP_DEBUG') && WP_DEBUG;
-        $api_key = trim(Ninja_Forms()->get_setting('ninja_forms_mc_api'));
-        $ssl_verifypeer = (Ninja_Forms()->get_setting('ninja_forms_mc_disable_ssl_verify')) ? FALSE : TRUE;
-
-        $options = array(
-          'debug' => $debug,
-          'ssl_verifypeer' => $ssl_verifypeer,
-        );
-
-        try {
-          $this->_api = new Mailchimp($api_key, $options);
-        } catch (Exception $e) {
-          // TODO: Log Error, $e->getMessage(), for System Status Report
-        }
-      }
-      return $this->_api;
     }
 
     /*
@@ -318,8 +174,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
      * @param string $file_name
      * @param array $data
      */
-    public static function template( $file_name = '', array $data = array() )
-    {
+    public static function template( $file_name = '', array $data = array() ) {
       if( ! $file_name ) return;
 
       extract( $data );
@@ -333,8 +188,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
      * @param $file_name
      * @return array
      */
-    public static function config( $file_name )
-    {
+    public static function config( $file_name ) {
       return include self::$dir . 'includes/Config/' . $file_name . '.php';
     }
 
@@ -348,7 +202,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     public function edit_sub_metabox( $post ) {
       global $ninja_forms_fields;
 
-      // enueue admin styling & scripts
+      // enqueue admin styling & scripts
       intel()->admin->enqueue_styles();
       intel()->admin->enqueue_scripts();
 
@@ -390,9 +244,9 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       ?>
       <div class="inside bootstrap-wrapper intel-wrapper">
         <div class="intel-content half row">
-          <h4 class="card-header"><?php print __('Submitter profile', 'gravityformsintel'); ?></h4>
+          <h4 class="card-header"><?php print __('Submitter profile', 'ninjaformsintel'); ?></h4>
           <?php print $output; ?>
-          <!-- <h4 class="card-header"><?php print __('Analytics', 'gravityformsintel'); ?></h4> -->
+          <!-- <h4 class="card-header"><?php print __('Analytics', 'ninjaformsintel'); ?></h4> -->
           <div class="card-deck-wrapper m-b-1">
             <div class="card-deck">
               <?php print Intel_Df::theme('intel_trafficsource_block', array('trafficsource' => $submission->data['analytics_session']['trafficsource'])); ?>
@@ -400,28 +254,73 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
               <?php print Intel_Df::theme('intel_browser_environment_block', array('entity' => $submission)); ?>
             </div>
           </div>
-          <?php print Intel_Df::theme('intel_visitor_profile_block', array('title' => __('Visit chronology', 'gravityformsintel'), 'markup' => $steps_table, 'no_margin' => 1)); ?>
+          <?php print Intel_Df::theme('intel_visitor_profile_block', array('title' => __('Visit chronology', 'ninjaformsintel'), 'markup' => $steps_table, 'no_margin' => 1)); ?>
         </div>
       </div>
       <?php
       return;
     }
 
-    /**
-     * Output an admin notice if curl is not available
-     *
-     * @return  void;
-     */
-    public static function curl_error() {
-      ?>
-      <div class="notice notice-error">
-        <p>
-          <?php _e( '<strong>Please contact your host:</strong> PHP cUrl is not installed; Mailchimp for Ninja Forms requires cUrl and will not function properly. ', 'ninja-forms-mailchimp' ); ?>
-        </p>
-      </div>
-
-      <?php
+    public function is_intel_active() {
+      static $flag;
+      if (!isset($flag)) {
+        $flag = is_callable('intel');
+      }
+      return $flag;
     }
+
+    public function is_setup() {
+      return 0;
+    }
+
+    public function site_menu() {
+      global $wp_version;
+      if ( !$this->is_setup() && current_user_can( 'manage_options' ) ) {
+        if (!$this->is_intel_active()) {
+          add_menu_page( esc_html__( "Intelligence", 'ninja-forms-intel' ), esc_html__( "Intelligence", 'ninja-forms-intel' ), 'manage_options', 'intel_admin', array( $this, 'menu_router' ), version_compare( $wp_version, '3.8.0', '>=' ) ? 'dashicons-analytics' : '');
+        }
+
+        add_submenu_page( 'intel_admin', esc_html__( "Setup", 'ninja-forms-intel' ), esc_html__( "Setup", 'ninja-forms-intel' ), 'manage_options', 'intel_setup', array( $this, 'menu_router' ) );
+      }
+    }
+
+    public function menu_router() {
+
+      require_once( self::$dir . 'intel_setup/intel.setup.inc' );
+      if (!empty($_GET['install'])) {
+        $this->install_intel();
+      }
+
+      if ($this->is_intel_active()) {
+        //$items[] = Intel_Df::l( esc_html__('Continue', 'ninja-forms-intel') );
+        Intel_Df::drupal_goto('admin/config/intel/settings/setup/nf_intel');
+        return;
+      }
+
+      $items = array();
+      $items[] = '<h1>' . __('Ninja Forms Intelligence Setup', 'ninja-forms-intel') . '</h1>';
+      $items[] = __('To continue with the setup please install the Intelligence plugin.');
+
+      $items[] = "<br>\n<br>\n";
+
+      $vars = array(
+        'plugin_slug' => 'intelligence',
+        'card_class' => array(
+          'action-buttons-only'
+        ),
+      );
+      $vars = intel_setup_process_install_plugin_card($vars);
+
+      $items[] = '<div class="intel-setup">';
+      $items[] = intel_setup_theme_install_plugin_card($vars);
+      $items[] = '</div>';
+
+      $output = implode("\n", $items);
+
+      print $output;
+    }
+
+
   }
 
   /**
@@ -439,6 +338,94 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
   }
 
   NF_Intel();
+}
+
+add_filter('intel_form_type_forms_info', 'nf_intel_form_type_forms_info');
+function nf_intel_form_type_forms_info($info) {
+  $info['ninjaforms'] = Ninja_Forms()->form()->get_forms();
+  return $info;
+}
+
+add_filter('intel_form_type_ninjaforms_form_setup', 'nf_intel_form_type_form_setup', 0, 2);
+function nf_intel_form_type_form_setup($data, $info) {
+
+  $data['id'] = $info->get_id();
+  $data['title'] = $info->get_setting('title', Intel_Df::t('(not set)'));
+  $data['type_label'] = __( 'Ninja Forms', 'ninja-forms' );
+  $data['settings_url'] = '/wp-admin/admin.php?page=ninja-forms&form_id=' . $data['id'];
+
+  $actions = Ninja_Forms()->form( $data['id'] )->get_actions();
+
+  foreach ($actions as $action) {
+    $action_settings = $action->get_settings();
+    if ($action_settings['type'] == 'intel') {
+
+      if (!empty($action_settings['intel_tracking_event_name'])) {
+        $labels = gf_intel_intl_eventgoal_labels();
+        $name = $action_settings['intel_tracking_event_name'];
+        $data['tracking_event_name'] = $data['tracking_event'] = !empty($labels[$name]) ? $labels[$name] : $name;
+      }
+      if (!empty($action_settings['intel_tracking_event_value'])) {
+        $data['tracking_event_value'] = $action_settings['intel_tracking_event_value'];
+      }
+    }
+
+  }
+
+  return $data;
+}
+
+/**
+ * Implements hook_intel_url_urn_resolver()
+ */
+add_filter('intel_url_urn_resovler', 'nf_intel_url_urn_resovler');
+function nf_intel_url_urn_resovler($vars) {
+  $urn_elms = explode(':', $vars['path']);
+  if ($urn_elms[0] == 'urn') {
+    array_shift($urn_elms);
+  }
+  if ($urn_elms[0] == '') {
+    if ($urn_elms[1] == 'ninjaform' && !empty($urn_elms[2])) {
+      $vars['path'] = 'wp-admin/post.php';
+      $vars['options']['query']['action'] = 'edit';
+      $vars['options']['query']['post'] = $urn_elms[2];
+    }
+  }
+
+  return $vars;
+}
+
+/**
+ * Implements hook_intel_test_url_parsing_alter()
+ */
+add_filter('intel_test_url_parsing_alter', 'nf_intel_test_url_parsing_alter');
+function nf_intel_test_url_parsing_alter($urls) {
+  $urls[] = ':ninjaform:1';
+  $urls[] = 'urn::ninjaform:1';
+  $urls[] = ':ninjaform:1:1';
+  $urls[] = 'urn::ninjaform:1:1';
+  return $urls;
+}
+
+// add intel_menu to hook_intel_menu_info
+add_filter('intel_menu_info', 'nf_intel_menu');
+/**
+ *  Implements of hook_menu()
+ */
+function nf_intel_menu($items = array()) {
+  $items['admin/config/intel/settings/setup/nf_intel'] = array(
+    'title' => 'Setup',
+    'description' => Intel_Df::t('Ninja Forms Intelligence initial plugin setup'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nf_intel_admin_setup'),
+    'access callback' => 'user_access',
+    'access arguments' => array('admin intel'),
+    'type' => Intel_Df::MENU_LOCAL_ACTION,
+    //'weight' => $w++,
+    'file' => 'admin/nf_intel.admin_setup.inc',
+    'file path' => NF_Intel::$dir,
+  );
+  return $items;
 }
 
 /*

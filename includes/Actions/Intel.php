@@ -50,6 +50,9 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
     }
 
     public function init_settings() {
+      if (!NF_Intel()->is_intel_active()) {
+        return;
+      }
       $prefix = $this->get_name() . '_';
 
 
@@ -79,27 +82,34 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       $settings = array();
 
       //$settings[$prefix . 'tracking_event_name'] = array(
+      $help = Intel_Df::t('Select a goal or event to trigger in Google Analytics when the form is submitted.');
+      //$l_options = Intel_Df::l_options_add_destination();
+      $l_options = Intel_Df::l_options_add_target('admin_intel_goal');
+      $help .= ' ' . Intel_Df::t('You can use the goal admin to !add_goal', array(
+          '!add_goal' => Intel_Df::l( Intel_Df::t('add a goal'), 'admin/config/intel/settings/goal/add', $l_options)
+        ));
       $settings[] = array(
         'name' => $prefix . 'tracking_event_name',
         'type' => 'select',
-        'label' => __( 'Tracking event name', 'ninja-forms-intel' ),
+        'label' => __( 'Tracking event/goal', 'ninja-forms-intel' ),
         'options' => $options,
         'group' => 'primary',
         'width' => 'full',
+        'help' => $help,
       );
 
       //$settings[$prefix . 'tracking_event_value'] = array(
       $settings[] = array(
         'name' => $prefix . 'tracking_event_value',
         'type' => 'textbox',
-        'label' => __( 'Tracking event value', 'ninja-forms-intel' ),
+        'label' => __( 'Tracking value', 'ninja-forms-intel' ),
         'group' => 'primary',
         'width' => 'full',
       );
 
       $this->_settings[ $prefix . 'tracking_fields' ] = array(
         'name' => $prefix . 'tracking_fields',
-        'label' => __( 'Tracking', 'ninja-forms-intel' ),
+        'label' => __( 'Submission tracking', 'ninja-forms-intel' ),
         'type' => 'fieldset',
         'group' => 'primary',
         'settings' => $settings

@@ -1,0 +1,30 @@
+.intel-setup .plugin-card.action-buttons-only {
+    width: auto;
+    background-color: inherit;
+    border: none;
+    display: table;
+}
+
+.intel-setup .plugin-card.action-buttons-only .action-links {
+    position: static;
+    top: 0;
+    right: 0;
+    width: auto;
+}
+
+.intel-setup .plugin-card.action-buttons-only ul.plugin-action-buttons {
+    margin-left: 0;
+}
+
+.intel-setup .plugin-card.action-buttons-only ul.plugin-action-buttons li {
+    display: inline;
+    padding-right: 1em;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+
+
+
+
+
