@@ -492,6 +492,7 @@ function nf_intel_admin_setup_intel_api_key($form, &$form_state) {
       'target' => 'intl',
     ),
   );
+
   $imapi_domain = get_option('intel_imapi_url', '');
   if (!$imapi_domain) {
     $imapi_domain = INTEL_IMAPI_URL;
@@ -499,6 +500,7 @@ function nf_intel_admin_setup_intel_api_key($form, &$form_state) {
 
   $imapi_domain = explode('/', $imapi_domain);
   $imapi_domain = $imapi_domain[0];
+
   $items[] = '<p>';
   $items[] = Intel_Df::t('The Intelligence API automates management of your Google Analytics profile.');
   $items[] = Intel_Df::t('To use the API, you will need an API key for this site.');
@@ -525,6 +527,7 @@ function nf_intel_admin_setup_intel_api_key($form, &$form_state) {
   $items[] = '<br><br><label>' . Intel_Df::t('Alt') . '</label><br>';
   //$website_info = get_bloginfo();
   //intel_d($website_info);
+  /*
   $l_options['query'] = array(
     'state' => wp_create_nonce('iapi_auth'),
     //'website_name' => get_bloginfo('name'),
@@ -533,6 +536,15 @@ function nf_intel_admin_setup_intel_api_key($form, &$form_state) {
     'callback_destination' => Intel_Df::url('admin/config/intel/settings/setup/nf_intel'),
   );
   $items[] = Intel_Df::l(Intel_Df::t('Run Property Setup'), "http://$imapi_domain/property_setup", $l_options);
+  $l_options = array(
+    'callback_destination' => Intel_Df::url('admin/config/intel/settings/setup/nf_intel')
+  );
+  */
+  $sl_options = array(
+    'l_options' => $l_options,
+    'callback_destination' => Intel_Df::url('admin/config/intel/settings/setup/nf_intel'),
+  );
+  $items[] = intel_imapi_property_setup_l(Intel_Df::t('Run Property Setup'), $sl_options);
   /*
   $items[] = Intel_Df::l(Intel_Df::t('Setup a new property with your GA tracking id: @tid', array(
       '@tid' => $form_state['intel_ga_profile']['propertyId'],
