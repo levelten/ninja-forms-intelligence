@@ -65,13 +65,15 @@ if (!is_callable('intel_setup')) {
     return Intel_Setup::instance();
   }
 
-  intel_setup();
-
   function intel_setup_theme_install_plugin_card($vars) {
-    wp_enqueue_style('intel-setup-plugin-card', intel_setup()->url . 'css/intel.setup-plugin-card.css');
+    wp_enqueue_style('intel-setup-plugins', intel_setup()->url . 'css/intel.setup-plugins.css');
+
     wp_enqueue_script('plugin-install');
     wp_enqueue_script('updates');
+    wp_enqueue_script('intel-setup-plugins', intel_setup()->url . 'js/intel.setup-plugins.js');
     add_thickbox();
+
+
 
     $class_add = '';
     if (!empty($vars['class'])) {
@@ -80,6 +82,20 @@ if (!is_callable('intel_setup')) {
       }
       else {
         $class_add = ' ' . $vars['class'];
+      }
+    }
+
+
+    $wrapper0 = '<div id="plugin-filter' . $class_add . '">';
+    $wrapper1 = '</div>';
+
+    // check if only wrapper is to be returned
+    if (!isset($vars['wrapper']) || !empty($vars['wrapper'])) {
+      if (!empty($vars['wrapper']) && ($vars['wrapper'] == 'open')) {
+        return $wrapper0;
+      }
+      elseif (!empty($vars['wrapper']) && ($vars['wrapper'] == 'close')) {
+        return $wrapper1;
       }
     }
 
@@ -93,7 +109,8 @@ if (!is_callable('intel_setup')) {
       }
     }
 
-    $items[] = '<div id="plugin-filter' . $class_add . '">';
+
+
     $items[] = '<div class="plugin-card plugin-card-' . $vars['plugin_slug'] . $card_class_add . '">';
 
     $items[] = '<div class="action-links">';
@@ -104,9 +121,13 @@ if (!is_callable('intel_setup')) {
     $items[] = '</div>';
 
     $items[] = '</div>';
-    $items[] = '</div>';
 
-    return implode($items);
+    $output = implode($items);
+
+
+
+
+    return $wrapper0 . $output . $wrapper1;
   }
 
 
@@ -141,35 +162,92 @@ if (!is_callable('intel_setup')) {
 
         $vars['name'] = $name = strip_tags($title . ' ' . $version);
 
+
+        $text = array(
+          'install_link_install' => __('Install Now'),
+          'install_link_update' => __('Update Now'),
+          'install_link_activate' => __('Activate'),
+          'install_link_active' => _x('Active', 'plugin'),
+          'install_link_installed' => _x('Installed', 'plugin'),
+          'details_link' => __('More Details'),
+        );
+
+        foreach ($text as $k => $v) {
+          if (!empty($vars[$k . '_text'])) {
+            $text[$k] = ' ' . $vars[$k . '_text'];
+          }
+        }
+
+        $class_add = array(
+          'install_link' => '',
+          'install_link_install' => '',
+          'install_link_update' => '',
+          'install_link_activate' => '',
+          'install_link_active' => ' button-disabled',
+          'install_link_installed' => ' button-disabled',
+          'details_link' => '',
+        );
+
+        foreach ($class_add as $k => $v) {
+          if (!empty($vars[$k . '_class'])) {
+            if (is_array($vars[$k . '_class'])) {
+              $class_add[$k] = ' ' . implode(' ', $vars[$k . '_class']);
+            }
+            else {
+              $class_add[$k] = ' ' . $vars[$k . '_class'];
+            }
+          }
+        }
+
         switch ($status['status']) {
           case 'install':
             if ($status['url']) {
               /* translators: 1: Plugin name and version. */
-              $vars['install_link'] = $action_links[] = '<a class="install-now button" data-slug="' . esc_attr($plugin['slug']) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Install %s now'), $name)) . '" data-name="' . esc_attr($name) . '">' . __('Install Now') . '</a>';
+              // hack to pass activate url to install button
+              if ($vars['activate_url']) {
+                $activate_url = $vars['activate_url'];
+              }
+              else {
+                $activate_url = network_admin_url('plugins.php');
+              }
+              $activate_url = add_query_arg(array(
+                //'_wpnonce' => wp_create_nonce('activate-plugin_' . $status['file']),
+                'action' => 'activate',
+                //'plugin' => $status['file'],
+              ), $activate_url);
+              $vars['install_link'] = $action_links[] = '<a class="install-now button' . $class_add['install_link'] . $class_add['install_link_install'] . '" data-slug="' . esc_attr($plugin['slug']) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Install %s now'), $name)) . '" data-name="' . esc_attr($name) . '" data-activate-url="' . $activate_url .  '">' . $text['install_link_install'] . '</a>';
             }
             break;
 
           case 'update_available':
             if ($status['url']) {
               /* translators: 1: Plugin name and version */
-              $vars['install_link'] = $action_links[] = '<a class="update-now button aria-button-if-js" data-plugin="' . esc_attr($status['file']) . '" data-slug="' . esc_attr($plugin['slug']) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Update %s now'), $name)) . '" data-name="' . esc_attr($name) . '">' . __('Update Now') . '</a>';
+              $vars['install_link'] = $action_links[] = '<a class="update-now button aria-button-if-js' . $class_add['install_link'] . $class_add['install_link_update'] . '" data-plugin="' . esc_attr($status['file']) . '" data-slug="' . esc_attr($plugin['slug']) . '" href="' . esc_url($status['url']) . '" aria-label="' . esc_attr(sprintf(__('Update %s now'), $name)) . '" data-name="' . esc_attr($name) . '">' . $text['install_link_update'] . '</a>';
             }
             break;
 
           case 'latest_installed':
           case 'newer_installed':
             if (is_plugin_active($status['file'])) {
-              $vars['install_link'] = $action_links[] = '<button type="button" class="button button-disabled" disabled="disabled">' . _x('Active', 'plugin') . '</button>';
+              $vars['install_link'] = $action_links[] = '<button type="button" class="button' . $class_add['install_link'] . $class_add['install_link_active'] . '" disabled="disabled">' . $text['install_link_active'] . '</button>';
             }
             elseif (current_user_can('activate_plugins')) {
-              $button_text = __('Activate');
+              $button_text = $text['install_link_activate'];
               /* translators: %s: Plugin name */
               $button_label = _x('Activate %s', 'plugin');
-              $activate_url = add_query_arg(array(
+              if (!empty($vars['activate_url'])) {
+                $activate_url = $vars['activate_url'];
+              }
+              else {
+                $activate_url = network_admin_url('plugins.php');
+              }
+              $vars['activate_url'] = $activate_url = add_query_arg(array(
                 '_wpnonce' => wp_create_nonce('activate-plugin_' . $status['file']),
                 'action' => 'activate',
                 'plugin' => $status['file'],
-              ), network_admin_url('plugins.php'));
+              ), $activate_url);
+
+
 
               if (is_network_admin()) {
                 $button_text = __('Network Activate');
@@ -179,14 +257,14 @@ if (!is_callable('intel_setup')) {
               }
 
               $vars['install_link'] = $action_links[] = sprintf(
-                '<a href="%1$s" class="button activate-now" aria-label="%2$s">%3$s</a>',
+                '<a href="%1$s" class="button activate-now' . $class_add['install_link'] . $class_add['install_link_activate'] . '" aria-label="%2$s">%3$s</a>',
                 esc_url($activate_url),
                 esc_attr(sprintf($button_label, $plugin['name'])),
                 $button_text
               );
             }
             else {
-              $vars['install_link'] = $action_links[] = '<button type="button" class="button button-disabled" disabled="disabled">' . _x('Installed', 'plugin') . '</button>';
+              $vars['install_link'] = $action_links[] = '<button type="button" class="button' . $class_add['install_link'] . $class_add['install_link_installed'] . '" disabled="disabled">' . $text['install_link_installed']. '</button>';
             }
             break;
         }
@@ -252,6 +330,89 @@ if (!is_callable('intel_setup')) {
       'br' => array()
     );
     return $plugins_allowedtags;
+  }
+
+  function intel_setup_plugin_activate() {
+    // copied from wp-admin/plugins to enable custom redirects
+
+    /** WordPress Administration Bootstrap */
+    require_once( ABSPATH . 'wp-admin/admin.php' );
+
+    if ( ! current_user_can('activate_plugins') )
+      wp_die( __( 'Sorry, you are not allowed to manage plugins for this site.' ) );
+
+    $wp_list_table = _get_list_table('WP_Plugins_List_Table');
+    $pagenum = $wp_list_table->get_pagenum();
+
+    $action = $wp_list_table->current_action();
+
+    $plugin = isset($_REQUEST['plugin']) ? wp_unslash( $_REQUEST['plugin'] ) : '';
+    $s = isset($_REQUEST['s']) ? urlencode( wp_unslash( $_REQUEST['s'] ) ) : '';
+
+    // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
+    $_SERVER['REQUEST_URI'] = remove_query_arg(array('error', 'deleted', 'activate', 'activate-multi', 'deactivate', 'deactivate-multi', '_error_nonce'), $_SERVER['REQUEST_URI']);
+
+    wp_enqueue_script( 'updates' );
+
+    if ( $action ) {
+
+      switch ($action) {
+        case 'activate':
+          if (!current_user_can('activate_plugin', $plugin)) {
+            wp_die(__('Sorry, you are not allowed to activate this plugin.'));
+          }
+
+          if (is_multisite() && !is_network_admin() && is_network_only_plugin($plugin)) {
+            wp_redirect(self_admin_url("plugins.php?plugin_status=$status&paged=$page&s=$s"));
+            exit;
+          }
+
+          check_admin_referer('activate-plugin_' . $plugin);
+          $result = activate_plugin($plugin, self_admin_url('plugins.php?error=true&plugin=' . urlencode($plugin)), is_network_admin());
+          if (is_wp_error($result)) {
+            if ('unexpected_output' == $result->get_error_code()) {
+              $redirect = self_admin_url('plugins.php?error=true&charsout=' . strlen($result->get_error_data()) . '&plugin=' . urlencode($plugin) . "&plugin_status=$status&paged=$page&s=$s");
+              wp_redirect(add_query_arg('_error_nonce', wp_create_nonce('plugin-activation-error_' . $plugin), $redirect));
+              exit;
+            }
+            else {
+              wp_die($result);
+            }
+          }
+          if (!is_network_admin()) {
+            $recent = (array) get_option('recently_activated');
+            unset($recent[$plugin]);
+            update_option('recently_activated', $recent);
+          }
+          else {
+            $recent = (array) get_site_option('recently_activated');
+            unset($recent[$plugin]);
+            update_site_option('recently_activated', $recent);
+          }
+
+          // added custom redirect
+          if (isset($_GET['destination'])) {
+            if (!empty($_GET['destination'])) {
+              wp_redirect( $_GET['destination'] );
+              exit;
+            }
+            return;
+          }
+
+          if (isset($_GET['from']) && 'import' == $_GET['from']) {
+            wp_redirect(self_admin_url("import.php?import=" . str_replace('-importer', '', dirname($plugin)))); // overrides the ?error=true one above and redirects to the Imports page, stripping the -importer suffix
+          }
+          else {
+            if (isset($_GET['from']) && 'press-this' == $_GET['from']) {
+              wp_redirect(self_admin_url("press-this.php"));
+            }
+            else {
+              wp_redirect(self_admin_url("plugins.php?activate=true&plugin_status=$status&paged=$page&s=$s")); // overrides the ?error=true one above
+            }
+          }
+          exit;
+      }
+    }
   }
 
   if (!function_exists('intel_d')) {

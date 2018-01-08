@@ -3,6 +3,7 @@
     background-color: inherit;
     border: none;
     display: table;
+    margin: 0;
 }
 
 .intel-setup .plugin-card.action-buttons-only .action-links {
@@ -10,6 +11,10 @@
     top: 0;
     right: 0;
     width: auto;
+}
+
+.intel-setup .plugin-card.action-buttons-only .action-links .plugin-action-buttons {
+    margin-bottom: 0;
 }
 
 .intel-setup .plugin-card.action-buttons-only ul.plugin-action-buttons {
@@ -21,6 +26,18 @@
     padding-right: 1em;
     display: table-cell;
     vertical-align: middle;
+}
+
+.intel-setup .plugin-card .action-links .btn {
+    height: auto;
+}
+
+.intel-setup .plugin-card .action-links .btn-success[disabled],
+.intel-setup .plugin-card .action-links .btn-success:disabled {
+    color: #fff !important;
+    background-color: #5cb85c !important;
+    border-color: #4cae4c !important;
+    text-shadow: none !important;
 }
 
 
