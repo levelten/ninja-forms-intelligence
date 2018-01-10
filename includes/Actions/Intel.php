@@ -38,7 +38,7 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
     public function __construct() {
         parent::__construct();
 
-        $this->_nicename = __( 'Intelligence', 'ninja-forms' );
+        $this->_nicename = __( 'Intelligence', 'nf_intel' );
 
         $this->init_settings();
 
@@ -50,32 +50,18 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
     }
 
     public function init_settings() {
-      if (!NF_Intel()->is_intel_active()) {
+      if (!NF_Intel()->is_intel_installed()) {
         return;
       }
       $prefix = $this->get_name() . '_';
 
 
-      $submission_goals = intel_get_event_goal_info('submission');
-
+      $eventgoal_options = intel_get_form_submission_eventgoal_options();
       $options = array();
-      $options[] = array(
-        'label' => esc_html__( '-- None --', 'gravityformsintel' ),
-        'value' => '',
-      );
-      $options[] = array(
-        'label' => esc_html__( 'Event: Form submission', 'gravityformsintel' ),
-        'value' => 'form_submission-',
-      );
-      $options[] = array(
-        'label' => esc_html__( 'Valued event: Form submission!', 'gravityformsintel' ),
-        'value' => 'form_submission',
-      );
-
-      foreach ($submission_goals AS $key => $goal) {
+      foreach ($eventgoal_options as $k => $l) {
         $options[] = array(
-          'label' => esc_html__( 'Goal: ', 'intel') . $goal['goal_title'],
-          'value' => $key,
+          'value' => $k,
+          'label' => $l,
         );
       }
 
@@ -91,7 +77,7 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       $settings[] = array(
         'name' => $prefix . 'tracking_event_name',
         'type' => 'select',
-        'label' => __( 'Tracking event/goal', 'ninja-forms-intel' ),
+        'label' => __( 'Tracking event/goal', 'nf_intel' ),
         'options' => $options,
         'group' => 'primary',
         'width' => 'full',
@@ -102,14 +88,14 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       $settings[] = array(
         'name' => $prefix . 'tracking_event_value',
         'type' => 'textbox',
-        'label' => __( 'Tracking value', 'ninja-forms-intel' ),
+        'label' => __( 'Tracking value', 'nf_intel' ),
         'group' => 'primary',
         'width' => 'full',
       );
 
       $this->_settings[ $prefix . 'tracking_fields' ] = array(
         'name' => $prefix . 'tracking_fields',
-        'label' => __( 'Submission tracking', 'ninja-forms-intel' ),
+        'label' => __( 'Submission tracking', 'nf_intel' ),
         'type' => 'fieldset',
         'group' => 'primary',
         'settings' => $settings
@@ -180,7 +166,7 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
 
       $this->_settings[ $prefix . 'field_map_fields' ] = array(
         'name' => 'field_map_fields',
-        'label' => __( 'Field map', 'ninja-forms-intel' ),
+        'label' => __( 'Field map', 'nf_intel' ),
         'type' => 'fieldset',
         'group' => 'primary',
         'settings' => $settings
@@ -196,82 +182,8 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
     }
 
     public function process( $settings, $form_id, $data ) {
-
-//Intel_Df::watchdog('nj_process settings', print_r($settings, 1));
-//Intel_Df::watchdog('nj_process form_id', print_r($form_id, 1));
-//Intel_Df::watchdog('nj_process data', print_r($data, 1));
-
-
-      $vars = intel_form_submission_vars_default();
-
-      $submission = &$vars['submission'];
-      $track = &$vars['track'];
-      $visitor_properties = &$vars['visitor_properties'];
-
-      $submission->type = 'ninja_form';
-      $submission->fid = $form_id;
-      // TODO: hack
-      // I bet this is not the right way to do this, but data.settings._seq_num
-      // does not have the correct value. Might be a nj bug.
-      global $wpdb;
-      $last_seq_num = $wpdb->get_var( $wpdb->prepare(
-        'SELECT value FROM ' . $wpdb->prefix . 'nf3_form_meta WHERE `key` = "_seq_num" AND `parent_id` = %s'
-        , $form_id ) );
-
-      $submission->fsid = !empty($last_seq_num) ? (int)$last_seq_num : 1;
-
-
-      //$submission->fsid = $seq_num = NF_Database_Models_Form::get_next_sub_seq( $form_id );
-      $submission->form_title = $data['settings']['title'];
-
-
-      $vars['submission_values'] = array();
-      if (!empty($data['fields']) && is_array($data['fields'])) {
-        foreach ($data['settings']['formContentData'] as $field) {
-          if (empty($field['settings']['key'])) {
-            continue;
-          }
-          $key = $field['settings']['key'];
-          $vars['submission_values'][$key] = $field['value'];
-        }
-      }
-
-
-      if (!empty($settings['intel_tracking_event_name'])) {
-        $track['name'] = $settings['intel_tracking_event_name'];
-        if (substr($track['name'], -1) == '-') {
-          $track['name'] = substr($track['name'], 0, -1);
-          $track['valued_event'] = 0;
-        }
-        if (!empty($settings['intel_tracking_event_value'])) {
-          $track['value'] = $settings['intel_tracking_event_value'];
-        }
-      }
-
-      // process visitor_properties
-      if (!empty($settings) && is_array($settings)) {
-        foreach ($settings as $k => $v) {
-          if (substr($k, 0, 11) != 'intel_prop_') {
-            continue;
-          }
-          $prop_name = substr($k, 11);
-          $visitor_properties[$prop_name] = $v;
-        }
-      }
-
-//Intel_Df::watchdog('nj_intel_process form_sub_vars', print_r($vars, 1));
-
-      $data['actions']['intel']['form_submission_vars'] = $vars;
-
-      intel_process_form_submission($vars);
-
-      if( ! isset($data['actions'] ) || ! isset($data['actions']['success_message']) ) {
-        $data['actions']['success_message'] = '';
-      }
-
-      $script = intel()->tracker->get_pushes_script();
-      $data['actions']['success_message'] .= "\n$script";
-
+      //Intel_Df::watchdog('nf_process settings', json_encode($settings));
+      $data = NF_Intel()->add_form_submission_vars($data, $settings);
 
       return $data;
     }

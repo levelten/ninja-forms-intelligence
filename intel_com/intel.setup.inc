@@ -2,7 +2,7 @@
 
 if (!is_callable('intel_setup')) {
   class Intel_Setup {
-    const VERSION = '1.0.0';
+    const VERSION = '1.0.1';
 
     /**
      * @var NF_MailChimp
@@ -134,8 +134,9 @@ if (!is_callable('intel_setup')) {
   function intel_setup_process_install_plugin_card($vars = array()) {
     include_once(ABSPATH . 'wp-admin/includes/plugin-install.php'); //for plugins_api..
 
+    $plugin_slug = !empty($vars['plugin_slug']) ? $vars['plugin_slug'] : 'intelligence';
     $args = array(
-      'slug' => !empty($vars['plugin_slug']) ? $vars['plugin_slug'] : 'intelligence',
+      'slug' => $plugin_slug,
     );
     $plugin = plugins_api('plugin_information', $args);
 
@@ -279,6 +280,13 @@ if (!is_callable('intel_setup')) {
 
     $vars['action_links'] = $action_links;
 
+    if (!empty($vars['activated_destination']) && is_callable('Intel_Df::url')) {
+      $vars['activated_redirect'] = Intel_Df::url($vars['activated_destination']);
+    }
+    if (!empty($vars['activated_redirect'])) {
+      intel_setup_set_activated_option($plugin_slug, array('redirect' => $vars['activated_redirect']));
+    }
+
     return $vars;
   }
 
@@ -332,86 +340,34 @@ if (!is_callable('intel_setup')) {
     return $plugins_allowedtags;
   }
 
-  function intel_setup_plugin_activate() {
-    // copied from wp-admin/plugins to enable custom redirects
+  function intel_setup_set_activated_option($plugin_slug, $value) {
+    set_transient('intel_activated_' . $plugin_slug, $value, 3600);
+  }
 
-    /** WordPress Administration Bootstrap */
-    require_once( ABSPATH . 'wp-admin/admin.php' );
+  function intel_setup_activated_plugin($plugin) {
+    $a = explode('/', $plugin);
+    $slug = $a[0];
+    $info = get_transient('intel_activated_' . $slug, '');
 
-    if ( ! current_user_can('activate_plugins') )
-      wp_die( __( 'Sorry, you are not allowed to manage plugins for this site.' ) );
+    // if no transient exists, exit
+    if (!is_array($info)) {
+      return;
+    }
 
-    $wp_list_table = _get_list_table('WP_Plugins_List_Table');
-    $pagenum = $wp_list_table->get_pagenum();
+    // transient should only be used once
+    delete_transient('intel_activated_' . $slug);
 
-    $action = $wp_list_table->current_action();
-
-    $plugin = isset($_REQUEST['plugin']) ? wp_unslash( $_REQUEST['plugin'] ) : '';
-    $s = isset($_REQUEST['s']) ? urlencode( wp_unslash( $_REQUEST['s'] ) ) : '';
-
-    // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
-    $_SERVER['REQUEST_URI'] = remove_query_arg(array('error', 'deleted', 'activate', 'activate-multi', 'deactivate', 'deactivate-multi', '_error_nonce'), $_SERVER['REQUEST_URI']);
-
-    wp_enqueue_script( 'updates' );
-
-    if ( $action ) {
-
-      switch ($action) {
-        case 'activate':
-          if (!current_user_can('activate_plugin', $plugin)) {
-            wp_die(__('Sorry, you are not allowed to activate this plugin.'));
-          }
-
-          if (is_multisite() && !is_network_admin() && is_network_only_plugin($plugin)) {
-            wp_redirect(self_admin_url("plugins.php?plugin_status=$status&paged=$page&s=$s"));
-            exit;
-          }
-
-          check_admin_referer('activate-plugin_' . $plugin);
-          $result = activate_plugin($plugin, self_admin_url('plugins.php?error=true&plugin=' . urlencode($plugin)), is_network_admin());
-          if (is_wp_error($result)) {
-            if ('unexpected_output' == $result->get_error_code()) {
-              $redirect = self_admin_url('plugins.php?error=true&charsout=' . strlen($result->get_error_data()) . '&plugin=' . urlencode($plugin) . "&plugin_status=$status&paged=$page&s=$s");
-              wp_redirect(add_query_arg('_error_nonce', wp_create_nonce('plugin-activation-error_' . $plugin), $redirect));
-              exit;
-            }
-            else {
-              wp_die($result);
-            }
-          }
-          if (!is_network_admin()) {
-            $recent = (array) get_option('recently_activated');
-            unset($recent[$plugin]);
-            update_option('recently_activated', $recent);
-          }
-          else {
-            $recent = (array) get_site_option('recently_activated');
-            unset($recent[$plugin]);
-            update_site_option('recently_activated', $recent);
-          }
-
-          // added custom redirect
-          if (isset($_GET['destination'])) {
-            if (!empty($_GET['destination'])) {
-              wp_redirect( $_GET['destination'] );
-              exit;
-            }
-            return;
-          }
-
-          if (isset($_GET['from']) && 'import' == $_GET['from']) {
-            wp_redirect(self_admin_url("import.php?import=" . str_replace('-importer', '', dirname($plugin)))); // overrides the ?error=true one above and redirects to the Imports page, stripping the -importer suffix
-          }
-          else {
-            if (isset($_GET['from']) && 'press-this' == $_GET['from']) {
-              wp_redirect(self_admin_url("press-this.php"));
-            }
-            else {
-              wp_redirect(self_admin_url("plugins.php?activate=true&plugin_status=$status&paged=$page&s=$s")); // overrides the ?error=true one above
-            }
-          }
-          exit;
+    if (!empty($info['destination'])) {
+      $info['redirect'] = Intel_Df::url($info['destination']);
+    }
+    if (!empty($info['redirect'])) {
+      // need to init role capabilities before redirect otherwise access will be
+      // denied on redirect
+      if ($slug == 'intelligence') {
+        intel()->setup_role_caps();
       }
+      wp_redirect($info['redirect']);
+      exit;
     }
   }
 

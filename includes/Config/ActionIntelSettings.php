@@ -30,7 +30,7 @@ foreach ($submission_goals AS $key => $goal) {
 $settings['tracking_event_name'] = array(
   'name' => 'tracking_event_name',
   'type' => 'select',
-  'label' => __( 'Tracking event name', 'ninja-forms-intel' ),
+  'label' => __( 'Tracking event name', 'nf_intel' ),
   'options' => $options,
   'group' => 'tracking',
   'width' => 'full',
@@ -39,7 +39,7 @@ $settings['tracking_event_name'] = array(
 $settings['tracking_event_value'] = array(
   'name' => 'tracking_event_value',
   'type' => 'textbox',
-  'label' => __( 'Tracking event value', 'ninja-forms-intel' ),
+  'label' => __( 'Tracking event value', 'nf_intel' ),
   'group' => 'tracking',
   'width' => 'full',
 );

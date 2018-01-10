@@ -213,30 +213,47 @@ function nf_intel_admin_setup_default_goal($form, &$form_state) {
 
   $f['default'] = array(
     '#type' => 'fieldset',
-    '#title' => __('Ninja Forms default goal', 'nf_intel'),
+    '#title' => __('Default form submission tracking', 'nf_intel'),
     '#collapsible' => FALSE,
   );
 
-  $desc = '';
-  $f['default']['goal_name'] = array(
-    '#type' => 'textfield',
-    '#title' => Intel_Df::t('Goal name'),
-    '#default_value' => __('Form submission', 'nf_intel'),
-    '#description' => $desc,
+  $f['default']['inline_wrapper_1'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div class="pull-left">',
   );
 
-  $f['default']['goal_value'] = array(
-    '#type' => 'textfield',
-    '#title' => Intel_Df::t('Goal value'),
-    '#default_value' => INTEL_GOAL_VALUE_DEFAULT,
-    '#size' => 10,
-    '#description' => $desc,
+  // load goals in case ga profile already has goals
+  $options = array(
+    'index_by' => 'ga_id',
+    'refresh' => !empty($_GET['refresh']) && is_numeric($_GET['refresh']) ? intval($_GET['refresh']) : 3600,
   );
 
-  $f['goal_bypass'] = array(
-    '#type' => 'checkbox',
-    '#title' => __('Do not setup a default goal right now.', 'nf_intel'),
-    '#default_value' => '',
+  $form_state['intel_goals'] = $goals = intel_goal_load(null, $options);
+  $form_state['intel_ga_goals'] = $ga_goals = intel_ga_goal_load();
+
+  $eventgoal_options = intel_get_form_submission_eventgoal_options();
+  $l_options = Intel_Df::l_options_add_destination(Intel_Df::current_path());
+  $f['default']['intel_tracking_event_name_default'] = array(
+    '#type' => 'select',
+    '#title' => Intel_Df::t('Tracking event/goal'),
+    '#options' => $eventgoal_options,
+    '#default_value' => get_option('intel_tracking_event_name_default', 'form_submission'),
+    '#description' => __('Select the goal or event you would like to trigger to be tracked in analytics when a form is submitted.', 'nf_intel'),
+    '#suffix' => '<div class="add-goal-link text-right" style="margin-top: -12px;">' . Intel_Df::l(Intel_Df::t('Add Goal'), 'admin/config/intel/settings/goal/add', $l_options) . '</div>',
+  );
+
+  $f['default']['inline_wrapper_2'] = array(
+    '#type' => 'markup',
+    '#markup' => '</div><div class="clearfix"></div>',
+  );
+
+  $desc = __('Set a value to be passed with the default goal. Leave blank to use the goal default value.', 'nf_intel');
+  $f['default']['intel_tracking_event_value'] = array(
+    '#type' => 'textfield',
+    '#title' => Intel_Df::t('Tracking value'),
+    '#default_value' => get_option('intel_tracking_event_value_default', ''),
+    '#description' => $desc,
+    '#size' => 8,
   );
 
   return $f;
@@ -244,15 +261,15 @@ function nf_intel_admin_setup_default_goal($form, &$form_state) {
 
 function nf_intel_admin_setup_default_goal_check($form, &$form_state) {
   $status = array();
-  /*
-  if (is_callable('intel')) {
+
+  $event_name = get_option('intel_tracking_event_name_default', -1);
+  if (isset($form_state['values']['intel_tracking_event_name_default'])) {
+    $event_name = $form_state['values']['intel_tracking_event_name_default'];
+  }
+
+  if ($event_name != -1) {
     $status['success'] = 1;
   }
-  else {
-    $status['error_msg'] = Intel_Df::t('Intelligence plugin has not been activated.');
-    $status['error_msg'] .= ' ' . Intel_Df::t('Please install and activate before proceeding.');
-  }
-  */
 
   return $status;
 }
@@ -262,25 +279,58 @@ function nf_intel_admin_setup_default_goal_validate($form, &$form_state, $status
 }
 
 function nf_intel_admin_setup_default_goal_submit($form, &$form_state) {
-
+  update_option('intel_tracking_event_name_default', $form_state['values']['intel_tracking_event_name_default']);
+  update_option('intel_tracking_event_value_default', $form_state['values']['intel_tracking_event_value_default']);
 }
 
 function nf_intel_admin_setup_finish($form, &$form_state) {
   $f = array();
 
+  $markup = '';
+  $markup .= '<div class="row">';
+  $markup .= '<div class="col-xs-7">';
+  $f['markup_0'] = array(
+    '#type' => 'markup',
+    '#markup' => $markup,
+  );
+
   $items = array();
 
+  $items[] = '<div class="text-center">';
+  $items[] = '<h3>' . Intel_Df::t('Congratulations!') . '</h3>';
+
   $items[] = '<p>';
-  $items[] = __('TODO', 'nf_intel');
+  $items[] = __('Your Ninja Forms submission are now being tracked.', 'nf_intel');
   $items[] = '</p>';
-  $items[] = '<br>';
+
+
+  $items[] = '<p>';
+  $items[] = Intel_Df::t(__('To customize form tracking settings in !nf_link or view the !intel_link.', 'nf_intel'),
+    array(
+      '!nf_link' => Intel_Df::l(__('Ninja Forms', 'nf_intel'), 'wp-admin/admin.php?page=ninja-forms'),
+      '!intel_link' => Intel_Df::l(__('Intelligence form settings list', 'nf_intel'), 'admin/config/intel/settings/form'),
+    ));
+  $items[] = '</p>';
+
+  $items[] = '</div>';
 
   $f['instructions'] = array(
     '#type' => 'markup',
     '#markup' => implode(' ', $items),
   );
 
-  // clear nj_setup as active setup wizard
+  $markup = '';
+  $markup .= '</div>';
+  $markup .= '<div class="col-xs-5">';
+  $markup .= '<image src="' . INTEL_URL . '/images/setup_finish_right.png" class="img-responsive" >';
+  $markup .= '</div>';
+  $markup .= '</div>';
+  $f['markup_1'] = array(
+    '#type' => 'markup',
+    '#markup' => $markup,
+  );
+
+  // clear nf_setup as active setup wizard
   update_option('intel_setup', array());
 
   return $f;

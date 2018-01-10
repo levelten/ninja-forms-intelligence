@@ -7,6 +7,7 @@
 
   wp_intel.setup_plugins = {};
 
+  /*
   wp_intel.setup_plugins.init = function() {
     // copy function by value
     wp.updates.installPluginSuccess0 = wp.updates.installPluginSuccess.bind({});
@@ -45,6 +46,6 @@
   };
 
   setTimeout(function(){ if (wp.updates != undefined) { wp_intel.setup_plugins.init(); }  }, 1000);
-
+  */
 
 })( jQuery, window.wp, window.wp_intel, window._intel );
