@@ -70,18 +70,21 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       //$settings[$prefix . 'tracking_event_name'] = array(
       $help = Intel_Df::t('Select a goal or event to trigger in Google Analytics when the form is submitted.');
       //$l_options = Intel_Df::l_options_add_destination();
-      $l_options = Intel_Df::l_options_add_target('admin_intel_goal');
-      $help .= ' ' . Intel_Df::t('You can use the goal admin to !add_goal', array(
-          '!add_goal' => Intel_Df::l( Intel_Df::t('add a goal'), 'admin/config/intel/settings/goal/add', $l_options)
-        ));
+      //$l_options = Intel_Df::l_options_add_target('admin_intel_goal');
+      $form_id = !empty($_GET['form_id']) ? $_GET['form_id'] : '';
+      $l_options = Intel_Df::l_options_add_destination('wp-admin/admin.php?page=ninja-forms&form_id=' . $form_id);
+      $add_goal = Intel_Df::l( Intel_Df::t('+Add goal'), 'admin/config/intel/settings/goal/add', $l_options);
+      $help = ' ' . Intel_Df::t('You can use the goal admin to !add_goal', array(
+          '!add_goal' => $add_goal
+      ));
       $settings[] = array(
         'name' => $prefix . 'tracking_event_name',
         'type' => 'select',
-        'label' => __( 'Tracking event/goal', 'nf_intel' ),
+        'label' => __( 'Tracking event/goal', 'nf_intel' ) . ' ' . $add_goal . '',
         'options' => $options,
         'group' => 'primary',
         'width' => 'full',
-        'help' => $help,
+        //'help' => $help,
       );
 
       //$settings[$prefix . 'tracking_event_value'] = array(

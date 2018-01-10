@@ -205,7 +205,7 @@ if (!is_callable('intel_setup')) {
             if ($status['url']) {
               /* translators: 1: Plugin name and version. */
               // hack to pass activate url to install button
-              if ($vars['activate_url']) {
+              if (!empty($vars['activate_url'])) {
                 $activate_url = $vars['activate_url'];
               }
               else {

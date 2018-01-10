@@ -11,6 +11,7 @@
     top: 0;
     right: 0;
     width: auto;
+    margin-left: 0;
 }
 
 .intel-setup .plugin-card.action-buttons-only .action-links .plugin-action-buttons {
@@ -28,6 +29,10 @@
     vertical-align: middle;
 }
 
+.intel-setup .plugin-card.action-buttons-only ul.plugin-action-buttons li .button {
+    margin-right: 0;
+}
+
 .intel-setup .plugin-card .action-links .btn {
     height: auto;
 }
@@ -39,9 +44,3 @@
     border-color: #4cae4c !important;
     text-shadow: none !important;
 }
-
-
-
-
-
-
