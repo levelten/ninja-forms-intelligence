@@ -148,10 +148,10 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       }
 
       if (!isset($intel_settings['intel_tracking_event_name'])) {
-        $intel_settings['intel_tracking_event_name'] = get_option('intel_tracking_event_name_default', 'form_submission');
+        $intel_settings['intel_tracking_event_name'] = get_option('intel_form_submission_tracking_event_name_default', 'form_submission');
       }
       if (!isset($intel_settings['intel_tracking_event_value'])) {
-        $intel_settings['intel_tracking_event_value'] = get_option('intel_tracking_event_value_default', '');
+        $intel_settings['intel_tracking_event_value'] = get_option('intel_form_submission_tracking_event_value_default', '');
       }
 
       if (!empty($intel_settings) && is_array($intel_settings)) {
@@ -501,6 +501,9 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     }
 
     public function intel_setup_page() {
+      if (!empty($_GET['plugin']) && $_GET['plugin'] != 'nf_intel') {
+        return;
+      }
       $output = $this->setup_intel_plugin_instructions();
 
       print $output;
@@ -510,17 +513,19 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
 
       require_once( self::$dir . 'intel_com/intel.setup.inc' );
 
+      $plugin_un = 'nf_intel';
+
       // initialize setup state option
       $intel_setup = get_option('intel_setup', array());
-      $intel_setup['active_path'] = 'admin/config/intel/settings/setup/nf_intel';
+      $intel_setup['active_path'] = 'admin/config/intel/settings/setup/' . $plugin_un;
       update_option('intel_setup', $intel_setup);
 
       intel_setup_set_activated_option('intelligence', array('destination' => $intel_setup['active_path']));
 
       $items = array();
 
-      $items[] = '<h1>' . __('Ninja Forms Intelligence Setup', 'nf_intel') . '</h1>';
-      $items[] = __('To continue with the setup please install the Intelligence plugin.');
+      $items[] = '<h1>' . __('Ninja Forms Intelligence Setup', $plugin_un) . '</h1>';
+      $items[] = __('To continue with the setup please install the Intelligence plugin.', $plugin_un);
 
       $items[] = "<br>\n<br>\n";
 
@@ -569,7 +574,7 @@ function nf_intel_form_type_forms_info($info) {
 add_filter('intel_form_type_forms_info', 'nf_intel_form_type_forms_info');
 
 /*
- * Implements hook_intel_form_type_ninjaforms_form_setup()
+ * Implements hook_intel_form_type_form_setup()
  */
 function nf_intel_form_type_form_setup($data, $info) {
 
@@ -600,7 +605,7 @@ function nf_intel_form_type_form_setup($data, $info) {
 
   return $data;
 }
-// Register hook_intel_form_type_ninjaforms_form_setup()
+// Register hook_intel_form_type_form_setup()
 add_filter('intel_form_type_ninjaforms_form_setup', 'nf_intel_form_type_form_setup', 0, 2);
 
 /**

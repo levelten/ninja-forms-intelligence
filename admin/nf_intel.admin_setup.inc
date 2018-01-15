@@ -233,11 +233,11 @@ function nf_intel_admin_setup_default_goal($form, &$form_state) {
 
   $eventgoal_options = intel_get_form_submission_eventgoal_options();
   $l_options = Intel_Df::l_options_add_destination(Intel_Df::current_path());
-  $f['default']['intel_tracking_event_name_default'] = array(
+  $f['default']['intel_form_submission_tracking_event_name_default'] = array(
     '#type' => 'select',
     '#title' => Intel_Df::t('Tracking event/goal'),
     '#options' => $eventgoal_options,
-    '#default_value' => get_option('intel_tracking_event_name_default', 'form_submission'),
+    '#default_value' => get_option('intel_form_submission_tracking_event_name_default', 'form_submission'),
     '#description' => __('Select the goal or event you would like to trigger to be tracked in analytics when a form is submitted.', 'nf_intel'),
     '#suffix' => '<div class="add-goal-link text-right" style="margin-top: -12px;">' . Intel_Df::l(Intel_Df::t('Add Goal'), 'admin/config/intel/settings/goal/add', $l_options) . '</div>',
   );
@@ -251,7 +251,7 @@ function nf_intel_admin_setup_default_goal($form, &$form_state) {
   $f['default']['intel_tracking_event_value'] = array(
     '#type' => 'textfield',
     '#title' => Intel_Df::t('Tracking value'),
-    '#default_value' => get_option('intel_tracking_event_value_default', ''),
+    '#default_value' => get_option('intel_form_submission_tracking_event_value_default', ''),
     '#description' => $desc,
     '#size' => 8,
   );
@@ -262,9 +262,9 @@ function nf_intel_admin_setup_default_goal($form, &$form_state) {
 function nf_intel_admin_setup_default_goal_check($form, &$form_state) {
   $status = array();
 
-  $event_name = get_option('intel_tracking_event_name_default', -1);
-  if (isset($form_state['values']['intel_tracking_event_name_default'])) {
-    $event_name = $form_state['values']['intel_tracking_event_name_default'];
+  $event_name = get_option('intel_form_submission_tracking_event_name_default', -1);
+  if (isset($form_state['values']['intel_form_submission_tracking_event_name_default'])) {
+    $event_name = $form_state['values']['intel_form_submission_tracking_event_name_default'];
   }
 
   if ($event_name != -1) {
@@ -279,8 +279,8 @@ function nf_intel_admin_setup_default_goal_validate($form, &$form_state, $status
 }
 
 function nf_intel_admin_setup_default_goal_submit($form, &$form_state) {
-  update_option('intel_tracking_event_name_default', $form_state['values']['intel_tracking_event_name_default']);
-  update_option('intel_tracking_event_value_default', $form_state['values']['intel_tracking_event_value_default']);
+  update_option('intel_form_submission_tracking_event_name_default', $form_state['values']['intel_form_submission_tracking_event_name_default']);
+  update_option('intel_form_submission_tracking_event_value_default', $form_state['values']['intel_form_submission_tracking_event_value_default']);
 }
 
 function nf_intel_admin_setup_finish($form, &$form_state) {

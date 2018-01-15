@@ -73,7 +73,7 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       //$l_options = Intel_Df::l_options_add_target('admin_intel_goal');
       $form_id = !empty($_GET['form_id']) ? $_GET['form_id'] : '';
       $l_options = Intel_Df::l_options_add_destination('wp-admin/admin.php?page=ninja-forms&form_id=' . $form_id);
-      $add_goal = Intel_Df::l( Intel_Df::t('+Add goal'), 'admin/config/intel/settings/goal/add', $l_options);
+      $add_goal = Intel_Df::l( '+' . Intel_Df::t('Add goal'), 'admin/config/intel/settings/goal/add', $l_options);
       $help = ' ' . Intel_Df::t('You can use the goal admin to !add_goal', array(
           '!add_goal' => $add_goal
       ));
