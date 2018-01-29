@@ -33,8 +33,8 @@ function nf_intel_admin_setup_wizard_info($items = array()) {
     'action_img_src' => INTEL_URL . '/images/setup_intel_action.png',
   );
 
-  $info['steps']['default_goal'] = array(
-    'title' => __('Default goal', 'nf_intel'),
+  $info['steps']['default_tracking'] = array(
+    'title' => __('Default tracking', 'nf_intel'),
     'action_img_src' => INTEL_URL . '/images/setup_intel_action.png',
   );
 
@@ -195,14 +195,16 @@ function nf_intel_admin_setup_intel_profile_submit($form, &$form_state) {
   return intel_admin_setup_intel_profile_submit($form, $form_state);
 }
 
-function nf_intel_admin_setup_default_goal($form, &$form_state) {
+function nf_intel_admin_setup_default_tracking($form, &$form_state) {
   $f = array();
 
   $items = array();
 
+  $text_domain = 'nf_intel';
+
   $items[] = '<p>';
-  $items[] = __('You can custom configure submission goals per form.', 'nf_intel');
-  $items[] = __('It is recommended to setup a default goal to trigger for all forms that don\'t have custom configured triggers.', 'nf_intel');
+  $items[] = __('You can custom configure tracking per form.', $text_domain);
+  $items[] = __('Default tracking is used as a fallback for any form that does not have custom configuration to assure all forms are tracked.', $text_domain);
   $items[] = '</p>';
   $items[] = '<br>';
 
@@ -213,7 +215,7 @@ function nf_intel_admin_setup_default_goal($form, &$form_state) {
 
   $f['default'] = array(
     '#type' => 'fieldset',
-    '#title' => __('Default form submission tracking', 'nf_intel'),
+    '#title' => __('Default form tracking', $text_domain),
     '#collapsible' => FALSE,
   );
 
@@ -233,12 +235,12 @@ function nf_intel_admin_setup_default_goal($form, &$form_state) {
 
   $eventgoal_options = intel_get_form_submission_eventgoal_options();
   $l_options = Intel_Df::l_options_add_destination(Intel_Df::current_path());
-  $f['default']['intel_form_submission_tracking_event_name_default'] = array(
+  $f['default']['intel_form_track_submission_default'] = array(
     '#type' => 'select',
-    '#title' => Intel_Df::t('Tracking event/goal'),
+    '#title' => Intel_Df::t('Submission event/goal'),
     '#options' => $eventgoal_options,
-    '#default_value' => get_option('intel_form_submission_tracking_event_name_default', 'form_submission'),
-    '#description' => __('Select the goal or event you would like to trigger to be tracked in analytics when a form is submitted.', 'nf_intel'),
+    '#default_value' => get_option('intel_form_track_submission_default', 'form_submission'),
+    '#description' => __('Select the goal or event you would like to trigger to be tracked in analytics when a form is submitted.', $text_domain),
     '#suffix' => '<div class="add-goal-link text-right" style="margin-top: -12px;">' . Intel_Df::l(Intel_Df::t('Add Goal'), 'admin/config/intel/settings/goal/add', $l_options) . '</div>',
   );
 
@@ -247,11 +249,20 @@ function nf_intel_admin_setup_default_goal($form, &$form_state) {
     '#markup' => '</div><div class="clearfix"></div>',
   );
 
-  $desc = __('Set a value to be passed with the default goal. Leave blank to use the goal default value.', 'nf_intel');
-  $f['default']['intel_tracking_event_value'] = array(
+  $desc = __('Set a value to be passed with the default goal. Leave blank to use the goal default value.', $text_domain);
+  $f['default']['intel_form_track_submission_value_default'] = array(
     '#type' => 'textfield',
-    '#title' => Intel_Df::t('Tracking value'),
-    '#default_value' => get_option('intel_form_submission_tracking_event_value_default', ''),
+    '#title' => Intel_Df::t('Submission value'),
+    '#default_value' => get_option('intel_form_track_submission_value_default', ''),
+    '#description' => $desc,
+    '#size' => 8,
+  );
+
+  $desc .= __('Triggers "Form impression" event whenever a form appears on a page.', $text_domain);
+  $f['default']['intel_form_track_view_default'] = array(
+    '#type' => 'checkbox',
+    '#title' => Intel_Df::t('Track form views'),
+    '#default_value' => get_option('intel_form_track_view_default', ''),
     '#description' => $desc,
     '#size' => 8,
   );
@@ -259,12 +270,12 @@ function nf_intel_admin_setup_default_goal($form, &$form_state) {
   return $f;
 }
 
-function nf_intel_admin_setup_default_goal_check($form, &$form_state) {
+function nf_intel_admin_setup_default_tracking_check($form, &$form_state) {
   $status = array();
 
-  $event_name = get_option('intel_form_submission_tracking_event_name_default', -1);
-  if (isset($form_state['values']['intel_form_submission_tracking_event_name_default'])) {
-    $event_name = $form_state['values']['intel_form_submission_tracking_event_name_default'];
+  $event_name = get_option('intel_form_track_submission_default', -1);
+  if (isset($form_state['values']['intel_form_track_submission_default'])) {
+    $event_name = $form_state['values']['intel_form_track_submission_default'];
   }
 
   if ($event_name != -1) {
@@ -274,13 +285,14 @@ function nf_intel_admin_setup_default_goal_check($form, &$form_state) {
   return $status;
 }
 
-function nf_intel_admin_setup_default_goal_validate($form, &$form_state, $status) {
+function nf_intel_admin_setup_default_tracking_validate($form, &$form_state, $status) {
 
 }
 
-function nf_intel_admin_setup_default_goal_submit($form, &$form_state) {
-  update_option('intel_form_submission_tracking_event_name_default', $form_state['values']['intel_form_submission_tracking_event_name_default']);
-  update_option('intel_form_submission_tracking_event_value_default', $form_state['values']['intel_form_submission_tracking_event_value_default']);
+function nf_intel_admin_setup_default_tracking_submit($form, &$form_state) {
+  update_option('intel_form_track_submission_default', $form_state['values']['intel_form_track_submission_default']);
+  update_option('intel_form_track_submission_value_default', $form_state['values']['intel_form_track_submission_value_default']);
+  update_option('intel_form_track_view_default', $form_state['values']['intel_form_track_view_default']);
 }
 
 function nf_intel_admin_setup_finish($form, &$form_state) {

@@ -78,9 +78,10 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
           '!add_goal' => $add_goal
       ));
       $settings[] = array(
-        'name' => $prefix . 'tracking_event_name',
+        //'name' => $prefix . 'tracking_event_name',
+        'name' => $prefix . 'track_submission',
         'type' => 'select',
-        'label' => __( 'Tracking event/goal', 'nf_intel' ) . ' ' . $add_goal . '',
+        'label' => __( 'Submission event/goal', 'nf_intel' ) . ' ' . $add_goal . '',
         'options' => $options,
         'group' => 'primary',
         'width' => 'full',
@@ -89,16 +90,36 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
 
       //$settings[$prefix . 'tracking_event_value'] = array(
       $settings[] = array(
-        'name' => $prefix . 'tracking_event_value',
+        //'name' => $prefix . 'tracking_event_value',
+        'name' => $prefix . 'track_submission_value',
         'type' => 'textbox',
-        'label' => __( 'Tracking value', 'nf_intel' ),
+        'label' => __( 'Submission value', 'nf_intel' ),
         'group' => 'primary',
         'width' => 'full',
       );
 
+      $intel_options = intel_get_form_view_options();
+      $options = array();
+      foreach ($intel_options as $k => $l) {
+        $options[] = array(
+          'value' => $k,
+          'label' => $l,
+        );
+      }
+      $settings[] = array(
+        //'name' => $prefix . 'tracking_event_name',
+        'name' => $prefix . 'track_view',
+        'type' => 'select',
+        'label' => __( 'Track form views', 'nf_intel' ),
+        'options' => $options,
+        'group' => 'primary',
+        'width' => 'full',
+        //'help' => $help,
+      );
+
       $this->_settings[ $prefix . 'tracking_fields' ] = array(
         'name' => $prefix . 'tracking_fields',
-        'label' => __( 'Submission tracking', 'nf_intel' ),
+        'label' => __( 'Tracking', 'nf_intel' ),
         'type' => 'fieldset',
         'group' => 'primary',
         'settings' => $settings

@@ -92,22 +92,64 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
 
       add_filter( 'ninja_forms_post_run_action_type_save', array($this, 'ninja_forms_post_run_action_type_save'));
 
+      add_filter( 'ninja_forms_display_after_form', array($this, 'ninja_forms_display_after_form'), 10, 2 );
+
       //add_filter( 'ninja_forms_post_run_action_type_successmessage', array($this, 'ninja_forms_post_run_action_type_successmessage'));
 
       //add_action( 'ninja_forms_after_submission', array($this, 'ninja_forms_after_submission') );
 
 
+      /*
       if (is_callable('intel_is_extended') && intel_is_extended()) {
         // Add our metabox for editing field values
         add_action( 'add_meta_boxes', array( $this, 'add_metaboxes' ) );
       }
+      */
 
 
       if (!is_callable('intel')) {
         // Add pages for plugin setup
         add_action( 'admin_menu', array($this, 'intel_setup_menu'));
       }
+      else {
+        add_action( 'add_meta_boxes', array( $this, 'add_metaboxes' ) );
+      }
 
+    }
+
+    public function ninja_forms_display_after_form($form_id, $is_preview = 0) {
+      // this hook can be triggered without a form_id, so check if it exists
+      if (empty($form_id)) {
+        return;
+      }
+      $form = Ninja_Forms()->form( $form_id )->get();
+
+      $actions = Ninja_Forms()->form( $form_id )->get_actions();
+
+      $intel_action_settings = array();
+      foreach ($actions as $action) {
+        $action_settings = $action->get_settings();
+
+        if ($action_settings['type'] == 'intel') {
+          $intel_action_settings = $action_settings;
+        }
+      }
+
+      $trackView = get_option('intel_form_track_view_default', '');
+      if (!empty($intel_action_settings['intel_track_view'])) {
+        $trackView = ($intel_action_settings['intel_track_view'] == '0') ? 0 : 1;
+      }
+
+      $def = array(
+        'selector' => '#nf-form-' . $form_id . '-cont',
+        'trackView' => $trackView,
+        'formType' => 'ninjaform',
+        'formTitle' => $form->get_setting( 'title' ),
+        'formId' => $form_id,
+      );
+      //intel_add_page_intel_push(array('formtracker:trackForm', $def));
+
+      print "<script>io('formtracker:trackForm', " . json_encode($def) . ");</script>";
     }
 
     /**
@@ -131,7 +173,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       $track = &$vars['track'];
       $visitor_properties = &$vars['visitor_properties'];
 
-      $submission->type = 'ninja_form';
+      $submission->type = 'ninjaform';
       $submission->fid = $data['form_id'];
       $submission->form_title = $data['settings']['title'];
 
@@ -147,15 +189,36 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
         }
       }
 
+      if (!isset($intel_settings['intel_track_submission'])) {
+        $intel_settings['intel_track_submission'] = get_option('intel_form_track_submission_default', 'form_submission');
+      }
+      if (!isset($intel_settings['intel_track_submission_value'])) {
+        $intel_settings['intel_track_submission_value'] = get_option('intel_form_track_submission_value_default', '');
+      }
+
+      /*
       if (!isset($intel_settings['intel_tracking_event_name'])) {
         $intel_settings['intel_tracking_event_name'] = get_option('intel_form_submission_tracking_event_name_default', 'form_submission');
       }
       if (!isset($intel_settings['intel_tracking_event_value'])) {
         $intel_settings['intel_tracking_event_value'] = get_option('intel_form_submission_tracking_event_value_default', '');
       }
+      */
 
       if (!empty($intel_settings) && is_array($intel_settings)) {
 
+        if (!empty($intel_settings['intel_track_submission'])) {
+          $track['name'] = $intel_settings['intel_track_submission'];
+          if (substr($track['name'], -1) == '-') {
+            $track['name'] = substr($track['name'], 0, -1);
+            $track['valued_event'] = 0;
+          }
+          if (!empty($intel_settings['intel_track_submission_value'])) {
+            $track['value'] = $intel_settings['intel_track_submission_value'];
+          }
+        }
+
+        /*
         if (!empty($intel_settings['intel_tracking_event_name'])) {
           $track['name'] = $intel_settings['intel_tracking_event_name'];
           if (substr($track['name'], -1) == '-') {
@@ -166,6 +229,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
             $track['value'] = $intel_settings['intel_tracking_event_value'];
           }
         }
+        */
 
         // process visitor_properties
         foreach ($intel_settings as $k => $v) {
@@ -410,6 +474,10 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     public function edit_sub_metabox( $post ) {
       global $ninja_forms_fields;
 
+      if (!is_callable('intel')) {
+        return;
+      }
+
       // enqueue admin styling & scripts
       intel()->admin->enqueue_styles();
       intel()->admin->enqueue_scripts();
@@ -427,45 +495,35 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
         return;
       }
       $submission = array_shift($submission);
-      $s = $submission->getSynced();
-      if (!$submission->getSynced()) {
-        $submission->syncData();
-      }
-      $submission->build_content($submission);
-      $visitor = intel()->get_entity_controller('intel_visitor')->loadOne($submission->vid);
-      $visitor->build_content($visitor);
 
-      //d($visitor->content);
-      $build = $visitor->content;
-      foreach ($build as $k => $v) {
-        if (empty($v['#region']) || ($v['#region'] == 'sidebar')) {
-          unset($build[$k]);
-        }
-      }
-      $build = array(
-        'elements' => $build,
-        'view_mode' => 'half',
+      $vars = array(
+        'page' => 'intel_admin',
+        'q' => 'submission/' . $submission->get_id() . '/profile',
+        'query' => array(
+          'embedded' => 1,
+        ),
+        'current_path' => "wp-admin/post.php?post={$post->ID}&action=edit",
       );
-      $output = Intel_Df::theme('intel_visitor_profile', $build);
 
-      $steps_table = Intel_Df::theme('intel_visit_steps_table', array('steps' => $submission->data['analytics_session']['steps']));
-      ?>
-      <div class="inside bootstrap-wrapper intel-wrapper">
-        <div class="intel-content half row">
-          <h4 class="card-header"><?php print __('Submitter profile', 'nf_intel'); ?></h4>
-          <?php print $output; ?>
-          <!-- <h4 class="card-header"><?php print __('Analytics', 'nf_intel'); ?></h4> -->
-          <div class="card-deck-wrapper m-b-1">
-            <div class="card-deck">
-              <?php print Intel_Df::theme('intel_trafficsource_block', array('trafficsource' => $submission->data['analytics_session']['trafficsource'])); ?>
-              <?php print Intel_Df::theme('intel_location_block', array('entity' => $submission)); ?>
-              <?php print Intel_Df::theme('intel_browser_environment_block', array('entity' => $submission)); ?>
-            </div>
-          </div>
-          <?php print Intel_Df::theme('intel_visitor_profile_block', array('title' => __('Visit chronology', 'nf_intel'), 'markup' => $steps_table, 'no_margin' => 1)); ?>
-        </div>
-      </div>
-      <?php
+      // json loading
+      $return_type = 'xmarkup';
+      if ($return_type == 'markup') {
+        include_once INTEL_DIR . 'admin/intel.admin_submission.inc';
+        $options = array(
+          'embedded' => 1,
+          'current_path' => "wp-admin/post.php?post={$post->ID}&action=edit"
+        );
+        $output = intel_submission_profile_page($submission, $options);
+      }
+      else {
+        include_once INTEL_DIR . 'includes/intel.reports.inc';
+
+        intel_add_report_headers();
+
+        $output = intel_get_report_ajax_container($vars);
+      }
+
+      print $output;
       return;
     }
 
@@ -606,7 +664,135 @@ function nf_intel_form_type_form_setup($data, $info) {
   return $data;
 }
 // Register hook_intel_form_type_form_setup()
-add_filter('intel_form_type_ninjaforms_form_setup', 'nf_intel_form_type_form_setup', 0, 2);
+add_filter('intel_form_type_ninjaforms_form_setup', 'nf_intel_form_type_form_setup', 10, 2);
+
+/**
+ * Implements hook_intel_form_type_info()
+ */
+function nf_intel_form_type_info($info = array()) {
+  $info['ninjaform'] = array(
+    'title' => __( 'Ninja Form', 'ninja-form' ),
+    'plugin' => array(
+      'name' => __( 'Ninja Forms', 'ninja-forms' ),
+      'slug' => 'ninja-forms',
+      'text_domain' => 'ninja-forms',
+    ),
+    'supports' => array(
+      'track_submission' => 1,
+      'track_submission_value' => 1,
+      'track_view' => 1,
+    ),
+    'submission_data_callback' => 'nf_intel_form_type_submission_data',
+  );
+  return $info;
+}
+// Register hook_intel_form_type_forms_info()
+add_filter('intel_form_type_info', 'nf_intel_form_type_info');
+
+/**
+ * Implements hook_intel_form_type_FORM_TYPE_UN_form_data()
+ */
+function nf_intel_form_type_form_info($data = NULL, $options = array()) {
+  $data = &Intel_Df::drupal_static( __FUNCTION__, array());
+  if (!empty($data) && empty($options['refresh'])) {
+    return $data;
+  }
+  $ninja_forms = Ninja_Forms()->form()->get_forms();
+  $intel_eventgoal_options = intel_get_form_submission_eventgoal_options();
+  foreach ($ninja_forms as $k => $form) {
+    $row = array();
+    $row['id'] = $form->get_id();
+    $row['title'] = $form->get_setting('title', Intel_Df::t('(not set)'));
+    $row['settings_url'] = '/wp-admin/admin.php?page=ninja-forms&form_id=' . $row['id'];
+    $row['settings'] = array();
+
+    $actions = Ninja_Forms()->form( $row['id'] )->get_actions();
+
+    foreach ($actions as $action) {
+      $action_settings = $action->get_settings();
+
+      if ($action_settings['type'] == 'intel') {
+        if (isset($action_settings['intel_track_submission'])) {
+          $name = $action_settings['intel_track_submission'];
+          $row['settings']['track_submission'] = $name;
+          $row['settings']['track_submission__title'] = !empty($intel_eventgoal_options[$name]) ? $intel_eventgoal_options[$name] : $name;
+        }
+        if (isset($action_settings['intel_track_submission_value'])) {
+          $row['settings']['track_submission_value'] = $action_settings['intel_track_submission_value'];
+        }
+        if (isset($action_settings['intel_track_view'])) {
+          $row['settings']['track_view'] = $action_settings['intel_track_view'];
+        }
+      }
+    }
+
+    $data[$row['id']] = $row;
+  }
+
+  return $data;
+}
+// Register hook_intel_form_type_forms_info()
+add_filter('intel_form_type_ninjaform_form_info', 'nf_intel_form_type_form_info');
+
+
+/*
+ * Implements hook_intel_form_type_form_setup()
+ */
+function nf_intel_form_type_submission_data($fid, $fsid) {
+
+  $form_info = nf_intel_form_type_form_info($data = NULL);
+
+  $data = array();
+
+  if (!empty($form_info[$fid])) {
+    $data['form_title'] = $form_info[$fid]['title'];
+  }
+
+  $data['submission_data_url'] = "wp-admin/post.php?post=$fsid&action=edit";
+  $data['field_values'] = array();
+  $data['field_titles'] = array();
+
+  $sub = Ninja_Forms()->form()->sub( $fsid )->get();
+
+  $field_values = $sub->get_field_values();
+
+  $field_models = Ninja_Forms()->form( $fid )->get_fields();
+
+  $field_model_keys = array();
+  foreach ($field_models as $k => $v) {
+    $i = $v->get_setting( 'key' );
+    $field_model_keys[$i] = $k;
+  }
+
+  foreach ($field_values as $k => $v) {
+    if (substr($k, 0, 1) == '_') {
+      continue;
+    }
+    // some keys have a trailing numeric id, we want to remove this to normalize
+    // the data keys.
+    $nk = $k;
+    $a = explode('_', $k);
+    $a_last = array_pop($a);
+    if (count($a) >= 1 && strlen($a_last) > 12 && is_numeric($a_last)) {
+      $nk = implode('_', $a);
+    }
+    $data['field_values'][$nk] = $v;
+
+    if (!empty($field_models[$field_model_keys[$k]])) {
+      $field_model = $field_models[$field_model_keys[$k]];
+      $data['field_titles'][$nk] = $field_model->get_setting( 'label' );
+
+      $field_type = $field_model->get_settings( 'type' );
+      if ($field_type == 'email') {
+        $data['field_values'][$nk] = Intel_Df::l($data['field_values'][$nk], 'mailto:' . $data['field_values'][$nk]);
+      }
+
+
+    }
+  }
+
+  return $data;
+}
 
 /**
  * Implements hook_intel_url_urn_resolver()
