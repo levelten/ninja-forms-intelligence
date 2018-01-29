@@ -84,37 +84,25 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
      */
     public function __construct() {
 
-      add_filter( 'ninja_forms_register_actions', array( $this, 'register_actions' ) );
+      add_filter( 'ninja_forms_field_settings_groups', array( $this, 'ninja_forms_field_settings_groups'));
 
-      add_filter( 'ninja_forms_field_settings_groups', array( $this, 'field_settings_groups'));
+      if (is_callable('intel')) {
 
-      add_action( 'ninja_forms_loaded', array( $this, 'ninja_forms_loaded' ) );
+        add_filter( 'ninja_forms_register_actions', array( $this, 'ninja_forms_register_actions' ) );
 
-      add_filter( 'ninja_forms_post_run_action_type_save', array($this, 'ninja_forms_post_run_action_type_save'));
+        add_action( 'ninja_forms_loaded', array( $this, 'ninja_forms_loaded' ) );
 
-      add_filter( 'ninja_forms_display_after_form', array($this, 'ninja_forms_display_after_form'), 10, 2 );
+        add_filter( 'ninja_forms_post_run_action_type_save', array($this, 'ninja_forms_post_run_action_type_save'));
 
-      //add_filter( 'ninja_forms_post_run_action_type_successmessage', array($this, 'ninja_forms_post_run_action_type_successmessage'));
+        add_filter( 'ninja_forms_display_after_form', array($this, 'ninja_forms_display_after_form'), 10, 2 );
 
-      //add_action( 'ninja_forms_after_submission', array($this, 'ninja_forms_after_submission') );
-
-
-      /*
-      if (is_callable('intel_is_extended') && intel_is_extended()) {
-        // Add our metabox for editing field values
         add_action( 'add_meta_boxes', array( $this, 'add_metaboxes' ) );
+
       }
-      */
-
-
-      if (!is_callable('intel')) {
+      else {
         // Add pages for plugin setup
         add_action( 'admin_menu', array($this, 'intel_setup_menu'));
       }
-      else {
-        add_action( 'add_meta_boxes', array( $this, 'add_metaboxes' ) );
-      }
-
     }
 
     public function ninja_forms_display_after_form($form_id, $is_preview = 0) {
@@ -376,7 +364,11 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     }
 
     public function add_metaboxes() {
-      add_meta_box( 'nf_intel_fields', __( 'Intelligence', 'nf_intel' ), array( $this, 'edit_sub_metabox' ), 'nf_sub', 'normal', 'low');
+      if (is_callable('intel') && version_compare(INTEL_VER, '1.2.7', '>=')) {
+        if (intel_is_api_level('pro') && get_option('intel_form_feedback_submission_profile', 1)) {
+          add_meta_box('nf_intel_fields', Intel_Df::t('Intelligence'), array( $this, 'edit_sub_metabox' ), 'nf_sub', 'normal', 'low');
+        }
+      }
     }
 
     public function ninja_forms_loaded() {
@@ -389,7 +381,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
      * @param array $actions
      * @return array $actions
      */
-    public function register_actions($actions) {
+    public function ninja_forms_register_actions($actions) {
       $actions[ 'intel' ] = new NF_Intel_Actions_Intel();
 
       return $actions;
@@ -398,7 +390,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     /**
      * Setup tracking field groups
      */
-    public function field_settings_groups($groups) {
+    public function ninja_forms_field_settings_groups($groups) {
       $groups['tracking'] = array(
         'id' => 'tracking',
         'label' => __( 'Submission tracking', 'nf_intel' ),
@@ -477,6 +469,17 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       if (!is_callable('intel')) {
         return;
       }
+
+      if (!get_option('intel_form_feedback_submission_profile', 1)) {
+        return;
+      }
+
+      // data function only available in Intel v1.2.7+
+      if (version_compare(INTEL_VER, '1.2.7', '>=')) {
+        _e('Please update Intelligence to version 1.2.7 to view this feature.', 'nf_intel');
+        return;
+      }
+
 
       // enqueue admin styling & scripts
       intel()->admin->enqueue_styles();

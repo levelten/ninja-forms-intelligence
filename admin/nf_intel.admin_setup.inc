@@ -233,7 +233,7 @@ function nf_intel_admin_setup_default_tracking($form, &$form_state) {
   $form_state['intel_goals'] = $goals = intel_goal_load(null, $options);
   $form_state['intel_ga_goals'] = $ga_goals = intel_ga_goal_load();
 
-  $eventgoal_options = intel_get_form_submission_eventgoal_options();
+  $eventgoal_options = intel_get_form_submission_eventgoal_options('default');
   $l_options = Intel_Df::l_options_add_destination(Intel_Df::current_path());
   $f['default']['intel_form_track_submission_default'] = array(
     '#type' => 'select',
