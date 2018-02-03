@@ -625,6 +625,43 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
 }
 
 /**
+ * Implements hook_register_activation_hook()
+ */
+function nf_intel_activation() {
+  if (is_callable('intel_activate_plugin')) {
+    intel_activate_plugin('nf_intel');
+  }
+}
+register_activation_hook( __FILE__, 'nf_intel_activation' );
+
+/**
+ * Implements hook_register_uninstall_hook()
+ */
+function _nf_intel_uninstall() {
+  require_once plugin_dir_path( __FILE__ ) . 'ninja-forms-intel.install';
+  nf_intel_uninstall();
+}
+register_uninstall_hook( __FILE__, '_nf_intel_uninstall' );
+
+/**
+ * Implements hook_intel_system_info()
+ *
+ * Registers plugin with intel_system
+ *
+ * @param array $info
+ * @return array
+ */
+function nf_intel_intel_system_info($info = array()) {
+  $info['nf_intel'] = array(
+    'plugin_file' => 'ninja-forms-intel.php', // Main plugin file
+    'plugin_path' => NF_Intel::$dir, // The path to the directory containing file
+    'update_file' => 'ninja-forms-intel.install', // default [plugin_un].install
+  );
+  return $info;
+}
+add_filter('intel_system_info', 'nf_intel_intel_system_info');
+
+/**
  * Implements hook_intel_form_type_forms_info()
  */
 function nf_intel_form_type_forms_info($info) {
