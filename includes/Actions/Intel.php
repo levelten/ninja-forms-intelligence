@@ -59,11 +59,16 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       $eventgoal_options = intel_get_form_submission_eventgoal_options();
       $options = array();
       foreach ($eventgoal_options as $k => $l) {
+        // Ninja Forms considers '0' the unset option, change to _0 so '' is used
+        if ($k == '0') {
+          $k = '_0';
+        }
         $options[] = array(
           'value' => $k,
           'label' => $l,
         );
       }
+      Intel_Df::watchdog('$options', print_r($options, 1));
 
       $settings = array();
 
@@ -98,24 +103,31 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
         'width' => 'full',
       );
 
-      $intel_options = intel_get_form_view_options();
-      $options = array();
-      foreach ($intel_options as $k => $l) {
-        $options[] = array(
-          'value' => $k,
-          'label' => $l,
+      if (is_callable('intel_get_form_view_options')) {
+        $intel_options = intel_get_form_view_options();
+        $options = array();
+        foreach ($intel_options as $k => $l) {
+          // Ninja Forms considers '0' the unset option, change to _0 so '' is used
+          if ($k == '0') {
+            $k = '_0';
+          }
+          $options[] = array(
+            'value' => $k,
+            'label' => $l,
+          );
+        }
+        $settings[] = array(
+          //'name' => $prefix . 'tracking_event_name',
+          'name' => $prefix . 'track_view',
+          'type' => 'select',
+          'label' => __( 'Track form views', 'nf_intel' ),
+          'options' => $options,
+          'group' => 'primary',
+          'width' => 'full',
+          //'help' => $help,
         );
       }
-      $settings[] = array(
-        //'name' => $prefix . 'tracking_event_name',
-        'name' => $prefix . 'track_view',
-        'type' => 'select',
-        'label' => __( 'Track form views', 'nf_intel' ),
-        'options' => $options,
-        'group' => 'primary',
-        'width' => 'full',
-        //'help' => $help,
-      );
+
 
       $this->_settings[ $prefix . 'tracking_fields' ] = array(
         'name' => $prefix . 'tracking_fields',

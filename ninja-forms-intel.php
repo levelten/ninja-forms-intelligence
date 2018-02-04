@@ -125,7 +125,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
 
       $trackView = get_option('intel_form_track_view_default', '');
       if (!empty($intel_action_settings['intel_track_view'])) {
-        $trackView = ($intel_action_settings['intel_track_view'] == '0') ? 0 : 1;
+        $trackView = ($intel_action_settings['intel_track_view'] == '0' || $intel_action_settings['intel_track_view'] == '_0') ? 0 : 1;
       }
 
       $def = array(
@@ -195,7 +195,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
 
       if (!empty($intel_settings) && is_array($intel_settings)) {
 
-        if (!empty($intel_settings['intel_track_submission'])) {
+        if (!empty($intel_settings['intel_track_submission']) && $intel_settings['intel_track_submission'] != '0' && $intel_settings['intel_track_submission'] != '_0') {
           $track['name'] = $intel_settings['intel_track_submission'];
           if (substr($track['name'], -1) == '-') {
             $track['name'] = substr($track['name'], 0, -1);
@@ -754,6 +754,9 @@ function nf_intel_form_type_form_info($data = NULL, $options = array()) {
       if ($action_settings['type'] == 'intel') {
         if (isset($action_settings['intel_track_submission'])) {
           $name = $action_settings['intel_track_submission'];
+          if ($name == '_0') {
+            $name = '0';
+          }
           $row['settings']['track_submission'] = $name;
           $row['settings']['track_submission__title'] = !empty($intel_eventgoal_options[$name]) ? $intel_eventgoal_options[$name] : $name;
         }
@@ -761,6 +764,9 @@ function nf_intel_form_type_form_info($data = NULL, $options = array()) {
           $row['settings']['track_submission_value'] = $action_settings['intel_track_submission_value'];
         }
         if (isset($action_settings['intel_track_view'])) {
+          if ($action_settings['intel_track_view'] == '_0') {
+            $action_settings['intel_track_view'] = '0';
+          }
           $row['settings']['track_view'] = $action_settings['intel_track_view'];
         }
       }

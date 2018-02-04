@@ -26,11 +26,3 @@ function nf_intel_uninstall() {
 		intel_uninstall_plugin('nf_intel');
 	}
 }
-
-function nf_intel_update_1001() {
-	// Just Testing
-}
-
-function nf_intel_update_1002() {
-	// Just Testing
-}
