@@ -309,10 +309,17 @@ function nf_intel_admin_setup_finish($form, &$form_state) {
   $items = array();
 
   $items[] = '<div class="text-center">';
-  $items[] = '<h3>' . Intel_Df::t('Congratulations!') . '</h3>';
+  $items[] = '<h3>' . Intel_Df::t('Congratulations') . '</h3>';
 
   $items[] = '<p>';
-  $items[] = __('Your Ninja Forms submission are now being tracked.', 'nf_intel');
+  $items[] = __('Your Ninja Forms submissions are now being tracked!', 'nf_intel');
+  $items[] = '</p>';
+
+  $items[] = '<p>';
+  $items[] = '<strong>' . Intel_Df::t('Go ahead, give it a try:') . '</strong>';
+  $l_options = Intel_Df::l_options_add_class('btn btn-info');
+  $items[] = '<br>' . Intel_Df::l( Intel_Df::t('Test your form tracking'), 'admin/help/demo/nf_intel', $l_options);
+  //$items[] = '<br>' . Intel_Df::t('(click on tracked links and forms to trigger events)');
   $items[] = '</p>';
 
 

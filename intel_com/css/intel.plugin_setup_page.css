@@ -1,0 +1,64 @@
+/*
+  Styles plugin setup page and Intelligence install instructions.
+
+  Can be displayed in two more; in wp screen, before Intelligence is installed, and setup wizard. WP screen will have
+  .intel-wp-screen class on container. Setup wizard has .intel-wrapper class on container.
+*/
+
+.intel-wp-screen div.welcome-panel {
+    padding-bottom: 23px;
+}
+
+.intel-wp-screen div.welcome-panel-content {
+    margin-left: 138px;
+}
+
+.intel-wp-screen div.welcome-panel-content .intel-setup-action-header {
+    margin-bottom: 0.5em;
+}
+
+.intel-wp-screen div.welcome-panel div.logo {
+    clear: both;
+    content: "";
+    display: block;
+    background-image: url(../images/icon-128x128.png);
+    background-size: 128px 128px;
+    background-repeat: no-repeat;
+    background-position: 0 45%;
+    width: 128px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 5px;
+}
+
+.intel-wp-screen div.welcome-panel h3 {
+    margin-bottom: 0.5em;
+}
+
+.intel-wrapper div.welcome-panel {
+    border: none;
+    margin: 0;
+    padding: 0 0 0 0;
+}
+
+.intel-wrapper div.welcome-panel h2.title {
+    margin-bottom: 0;
+}
+
+.intel-wrapper div.welcome-panel .welcome-panel-column-container {
+    margin-top: 1em;
+}
+
+.intel-wrapper div.welcome-panel h3 {
+    font-size: 16px;
+    margin: 1.33em 0 1em 0;
+}
+
+
+
+
+
+
+
+

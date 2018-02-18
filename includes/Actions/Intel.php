@@ -1,7 +1,7 @@
 <?php if ( ! defined( 'ABSPATH' ) || ! class_exists( 'NF_Abstracts_Action' )) exit;
 
 /**
- * Class NF_MailChimp_Actions_MailChimp
+ * Class NF_Intel_Actions_Intel
  */
 final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
 {
