@@ -137,7 +137,9 @@ function nf_intel_admin_setup_intel_plugin($form, &$form_state) {
 
   //$instructions = nf_intel_admin_setup_intel_plugin_instructions();
 
-  $instructions = NF_Intel()->setup_intel_plugin_instructions();
+  include_once NF_Intel()->dir . 'ninja-forms-intel.setup.inc';
+
+  $instructions = nf_intel_setup()->get_intel_install_instructions();
 
 
   $f['instructions'] = array(
@@ -324,9 +326,9 @@ function nf_intel_admin_setup_finish($form, &$form_state) {
 
 
   $items[] = '<p>';
-  $items[] = Intel_Df::t(__('To customize form tracking settings in !nf_link or view the !intel_link.', 'nf_intel'),
+  $items[] = Intel_Df::t(__('You can customize form tracking in !extends_link or view the !intel_link.', 'nf_intel'),
     array(
-      '!nf_link' => Intel_Df::l(__('Ninja Forms', 'nf_intel'), 'wp-admin/admin.php?page=ninja-forms'),
+      '!extends_link' => Intel_Df::l(__('Ninja Forms settings', 'nf_intel'), 'wp-admin/admin.php?page=ninja-forms'),
       '!intel_link' => Intel_Df::l(__('Intelligence form settings list', 'nf_intel'), 'admin/config/intel/settings/form'),
     ));
   $items[] = '</p>';

@@ -633,6 +633,14 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       }
     }
 
+    /**
+     * Returns if Intelligence plugin is installed and setup.
+     *
+     * @param string $level
+     * @return mixed
+     *
+     * @see intel_is_installed()
+     */
     public function is_intel_installed($level = 'min') {
       if (!is_callable('intel_is_installed')) {
         return FALSE;
@@ -646,7 +654,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
      * @param array $info
      * @return array
      *
-     * @see Intel::
+     * @see Intel::system_info()
      */
     function intel_plugin_info($info = array()) {
       $info = array(
@@ -730,6 +738,24 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
 
       $demo_mode = get_option('intel_demo_mode', 0);
 
+      // function introduced in intel 1.2.8, check it exists.
+      if (is_callable('intel_is_current_user_tracking_excluded') && intel_is_current_user_tracking_excluded()) {
+        $notice_vars = array(
+          'inline' => 1,
+          'type' => 'warning',
+        );
+        $notice_vars['message'] = __('Your user is set to be excluded from tracking on all web pages except Intelligence demo pages.', $this->plugin_un);
+        $notice_vars['message'] .= ' ' . __('If you submit a form that redirects to a non demo page tracking will be disabled.', $this->plugin_un);
+        $notice_vars['message'] .= ' ' . __('Either test only non-redirected forms, with a non-excluded user or', $this->plugin_un);
+        $l_options = Intel_Df::l_options_add_target('intel_admin');
+        $l_options = Intel_Df::l_options_add_destination(Intel_Df::current_path());
+        $notice_vars['message'] .= ' ' . Intel_Df::l(__('change the exclude settings', $this->plugin_un), 'admin/config/intel/settings/general', $l_options) . '.';
+
+        //$output .= Intel_Df::theme('wp_notice', $notice_vars);
+
+        $output .= '<div class="alert alert-info">' . $notice_vars['message'] . '</div>';
+      }
+
       $output .= '<div class="card">';
       $output .= '<div class="card-block clearfix">';
 
@@ -792,6 +818,21 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       $output .= '</div>'; // end card-block
       $output .= '</div>'; // end card
 
+      // Demo mode alert
+      $notice_vars = array(
+        'inline' => 1,
+        'type' => 'info',
+      );
+      $mode = $demo_mode ? __('enabled') : __('disabled');
+      $notice_vars['message'] = __('Demo pages for anonymous users are currently ', $this->plugin_un) . '<strong>' . $mode . '</strong>.';
+      $l_options = Intel_Df::l_options_add_class('btn btn-default');
+      $l_options = Intel_Df::l_options_add_destination(Intel_Df::current_path(), $l_options);
+      $notice_vars['message'] .= ' ' . Intel_Df::l(__('Change demo settings', $this->plugin_un), 'admin/config/intel/settings/general/demo', $l_options);
+
+      //$output .= Intel_Df::theme('wp_notice', $notice_vars);
+
+      $output .= '<div class="alert alert-info">' . $notice_vars['message'] . '</div>';
+
       return $output;
     }
 
@@ -809,6 +850,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       $forms = $this->intel_form_type_form_info();
 
       $content = '';
+
       if (!empty($_GET['fid']) && !empty($forms[$_GET['fid']])) {
         $form = $forms[$_GET['fid']];
         $content .= '<br>';
@@ -829,6 +871,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
         'post_content' => $content,
         'intel_demo' => array(
           'url' => 'intelligence/demo/' . $this->plugin_un,
+          'overridable' => 0,
         ),
       );
 
