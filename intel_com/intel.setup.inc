@@ -148,7 +148,6 @@ if (!is_callable('intel_setup')) {
 
       // check dependencies
       if (!function_exists('intel_is_plugin_active')) {
-        //$output .= '<div class="notice notice-' . $type . '">';
         $output .= '<div class="' . $notice_class . '">';
         $output .= '<p>';
         $output .= '<strong>' . __('Notice:') . '</strong> ';
