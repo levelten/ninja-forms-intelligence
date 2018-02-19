@@ -20,7 +20,7 @@ $info['nf_intel_connect'] = array(
 
 if (NF_Intel()->is_intel_installed()) {
   $eventgoal_options = intel_get_form_submission_eventgoal_options();
-  $default_name = get_option('intel_form_submission_tracking_event_name_default', 'form_submission');
+  $default_name = get_option('intel_form_track_submission_default', 'form_submission');
   $desc = !empty($eventgoal_options[$default_name]) ? $eventgoal_options[$default_name] : Intel_Df::t('(not set)');
   $l_options = Intel_Df::l_options_add_destination('wp-admin/admin.php?page=nf-settings');
   $l_options['attributes'] = array(
@@ -34,7 +34,7 @@ if (NF_Intel()->is_intel_installed()) {
     'desc'  => $desc,
   );
 
-  $default_value = get_option('intel_form_submission_tracking_event_value_default', '');
+  $default_value = get_option('intel_form_track_submission_value_default', '');
   $info['nf_intel_form_submission_tracking_event_value_default'] = array(
     'id'    => 'nf_intel_form_submission_tracking_event_value_default',
     'type'  => 'desc',
