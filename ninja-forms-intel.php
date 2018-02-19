@@ -188,7 +188,10 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       }
 
       $trackView = get_option('intel_form_track_view_default', '');
-      if (!empty($intel_action_settings['intel_track_view'])) {
+      if (isset($intel_action_settings['intel_track_view'])) {
+        if ($intel_action_settings['intel_track_view'] == '_0') {
+          $intel_action_settings['intel_track_view'] = '0';
+        }
         $trackView = ($intel_action_settings['intel_track_view'] == '0') ? 0 : 1;
       }
 
@@ -202,6 +205,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       //intel_add_page_intel_push(array('formtracker:trackForm', $def));
 
       print "<script>io('formtracker:trackForm', " . json_encode($def) . ");</script>";
+
     }
 
     /**
@@ -260,14 +264,21 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       if (!empty($intel_settings) && is_array($intel_settings)) {
 
         if (!empty($intel_settings['intel_track_submission'])) {
-          $track['name'] = $intel_settings['intel_track_submission'];
-          if (substr($track['name'], -1) == '-') {
-            $track['name'] = substr($track['name'], 0, -1);
-            $track['valued_event'] = 0;
+          if ($intel_settings['intel_track_submission'] == '_0') {
+            $intel_settings['intel_track_submission'] == '0';
           }
-          if (!empty($intel_settings['intel_track_submission_value'])) {
-            $track['value'] = $intel_settings['intel_track_submission_value'];
+          if (!empty($intel_settings['intel_track_submission']) && $intel_settings['intel_track_submission'] != '0') {
+            $track['name'] = $intel_settings['intel_track_submission'];
+
+            if (substr($track['name'], -1) == '-') {
+              $track['name'] = substr($track['name'], 0, -1);
+              $track['valued_event'] = 0;
+            }
+            if (!empty($intel_settings['intel_track_submission_value'])) {
+              $track['value'] = $intel_settings['intel_track_submission_value'];
+            }
           }
+
         }
 
         /*
@@ -932,6 +943,9 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
           if ($action_settings['type'] == 'intel') {
             if (isset($action_settings['intel_track_submission'])) {
               $name = $action_settings['intel_track_submission'];
+              if ($name == '_0') {
+                $name = '0';
+              }
               $row['settings']['track_submission'] = $name;
               $row['settings']['track_submission__title'] = !empty($intel_eventgoal_options[$name]) ? $intel_eventgoal_options[$name] : $name;
             }
@@ -939,7 +953,11 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
               $row['settings']['track_submission_value'] = $action_settings['intel_track_submission_value'];
             }
             if (isset($action_settings['intel_track_view'])) {
-              $row['settings']['track_view'] = $action_settings['intel_track_view'];
+              $name = $action_settings['intel_track_view'];
+              if ($name == '_0') {
+                $name = '0';
+              }
+              $row['settings']['track_view'] = $name;
             }
           }
         }

@@ -59,6 +59,11 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       $eventgoal_options = intel_get_form_submission_eventgoal_options();
       $options = array();
       foreach ($eventgoal_options as $k => $l) {
+        // NF uses '0' as default rather than ''. So alter to _0 for force use
+        // of ''.
+        if ($k == '0') {
+          $k = '_0';
+        }
         $options[] = array(
           'value' => $k,
           'label' => $l,
@@ -101,6 +106,11 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       $intel_options = intel_get_form_view_options();
       $options = array();
       foreach ($intel_options as $k => $l) {
+        // NF uses '0' as default rather than ''. So alter to _0 for force use
+        // of ''.
+        if ($k == '0') {
+          $k = '_0';
+        }
         $options[] = array(
           'value' => $k,
           'label' => $l,
