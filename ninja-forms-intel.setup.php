@@ -10,7 +10,7 @@
  */
 
 if (!is_callable('intel_setup')) {
-	include_once NF_Intel()->dir . 'intel_com/intel.setup.inc';
+	include_once NF_Intel()->dir . 'intel_com/intel.setup.php';
 }
 
 class NF_Intel_Setup extends Intel_Setup {

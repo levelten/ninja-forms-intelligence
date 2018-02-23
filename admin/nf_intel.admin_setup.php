@@ -16,12 +16,6 @@ function nf_intel_admin_setup_wizard_info($items = array()) {
     'callback_prefix' => 'nf_intel_admin_setup',
     'steps' => array(),
   );
-  $info['steps']['start'] = array(
-    'title' => Intel_Df::t('Start'),
-    'submit_button_text' => Intel_Df::t('Start setup'),
-    'submit_button_pre_text' => Intel_Df::t('when ready, click'),
-    'action_img_src' => INTEL_URL . '/images/setup_start_action.png',
-  );
 
   $info['steps']['intel_plugin'] = array(
     'title' => Intel_Df::t('Intelligence plugin'),
@@ -137,7 +131,7 @@ function nf_intel_admin_setup_intel_plugin($form, &$form_state) {
 
   //$instructions = nf_intel_admin_setup_intel_plugin_instructions();
 
-  include_once NF_Intel()->dir . 'ninja-forms-intel.setup.inc';
+  include_once NF_Intel()->dir . 'ninja-forms-intel.setup.php';
 
   $instructions = nf_intel_setup()->get_intel_install_instructions();
 
@@ -151,7 +145,7 @@ function nf_intel_admin_setup_intel_plugin($form, &$form_state) {
 }
 
 function nf_intel_admin_setup_intel_plugin_check($form, &$form_state) {
-  include_once INTEL_DIR . 'includes/intel.ga.inc';
+  include_once INTEL_DIR . 'includes/intel.ga.php';
 
   $status = array();
 
@@ -173,7 +167,7 @@ function nf_intel_admin_setup_intel_plugin_validate($form, &$form_state) {
 }
 
 function nf_intel_admin_setup_intel_profile($form, &$form_state) {
-  include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
+  include_once INTEL_DIR . 'admin/intel.admin_setup.php';
   $options = array(
     'imapi_property_setup' => array(
       'callback_destination' => Intel_Df::url('admin/config/intel/settings/setup/nf_intel'),
@@ -183,17 +177,17 @@ function nf_intel_admin_setup_intel_profile($form, &$form_state) {
 }
 
 function nf_intel_admin_setup_intel_profile_check($form, &$form_state) {
-  include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
+  include_once INTEL_DIR . 'admin/intel.admin_setup.php';
   return intel_admin_setup_intel_profile_check($form, $form_state);
 }
 
 function nf_intel_admin_setup_intel_profile_validate($form, &$form_state, $status) {
-  include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
+  include_once INTEL_DIR . 'admin/intel.admin_setup.php';
   return intel_admin_setup_intel_profile_validate($form, $form_state, $status);
 }
 
 function nf_intel_admin_setup_intel_profile_submit($form, &$form_state) {
-  include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
+  include_once INTEL_DIR . 'admin/intel.admin_setup.php';
   return intel_admin_setup_intel_profile_submit($form, $form_state);
 }
 

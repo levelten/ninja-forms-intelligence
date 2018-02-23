@@ -611,7 +611,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       // json loading
       $return_type = 'xmarkup';
       if ($return_type == 'markup') {
-        include_once INTEL_DIR . 'admin/intel.admin_submission.inc';
+        include_once INTEL_DIR . 'admin/intel.admin_submission.php';
         $options = array(
           'embedded' => 1,
           'current_path' => "wp-admin/post.php?post={$post->ID}&action=edit"
@@ -619,7 +619,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
         $output = intel_submission_profile_page($submission, $options);
       }
       else {
-        include_once INTEL_DIR . 'includes/intel.reports.inc';
+        include_once INTEL_DIR . 'includes/intel.reports.php';
 
         intel_add_report_headers();
 
@@ -640,7 +640,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
     public function wp_loaded() {
       // check if Intel is installed, add setup processing if not
       if (!$this->is_intel_installed()) {
-        require_once( $this->dir . 'ninja-forms-intel.setup.inc' );
+        require_once( $this->dir . 'ninja-forms-intel.setup.php' );
       }
     }
 
@@ -683,7 +683,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
         'plugin_url' => $this->url,
         // The install file for the plugin if different than [plugin_un].install
         // Used to auto discover database updates
-        'update_file' => 'ninja-forms-intel.install', // default [plugin_un].install
+        'update_file' => 'ninja-forms-intel.install.php', // default [plugin_un].install
         // If this plugin extends a plugin other than Intelligence, include that
         // plugin's info in 'extends_' properties
         // The extends plugin unique name
@@ -725,7 +725,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
         'access callback' => 'user_access',
         'access arguments' => array('admin intel'),
         'type' => Intel_Df::MENU_LOCAL_TASK,
-        'file' => 'admin/' . $this->plugin_un . '.admin_setup.inc',
+        'file' => 'admin/' . $this->plugin_un . '.admin_setup.php',
         'file path' => $this->dir,
       );
       // rout for Admin > Intelligence > Help > Demo > Ninja Forms
@@ -1076,19 +1076,19 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
 /**
  * Implements hook_register_activation_hook()
  */
-function _nf_intel_activation() {
+function nf_intel_activation_hook() {
   if (is_callable('intel_activate_plugin')) {
     intel_activate_plugin('nf_intel');
   }
 }
-register_activation_hook( __FILE__, '_nf_intel_activation' );
+register_activation_hook( __FILE__, 'nf_intel_activation_hook' );
 
 
 /**
  * Implements hook_register_uninstall_hook()
  */
-function _nf_intel_uninstall() {
-  require_once plugin_dir_path( __FILE__ ) . 'ninja-forms-intel.install';
+function nf_intel_uninstall_hook() {
+  require_once plugin_dir_path( __FILE__ ) . 'ninja-forms-intel.install.php';
   nf_intel_uninstall();
 }
-register_uninstall_hook( __FILE__, '_nf_intel_uninstall' );
+register_uninstall_hook( __FILE__, 'nf_intel_uninstall_hook' );
