@@ -12,7 +12,7 @@
 if (!is_callable('intel_setup')) {
 
   class Intel_Setup {
-    const VERSION = '1.0.3';
+    const VERSION = '1.0.4';
 
     /**
      * @var Intel_Setup
@@ -162,21 +162,6 @@ if (!is_callable('intel_setup')) {
 
         $output .= '</p>';
         $output .= '</div>';
-      }
-      else {
-        if (!empty($this->plugin_info['extends_plugin_un']) && !empty($this->plugin_info['extends_plugin_title'])) {
-          if (!intel_is_plugin_active($this->plugin_info['extends_plugin_un'])) {
-            $output .= '<div class="' . $notice_class . '">';
-            $output .= '<p>';
-            $output .= '<strong>' . __('Notice:') . '</strong> ';
-            $output .= $plugin_name . ' ';
-            $output .= __('requires the', $this->plugin_un) . ' ';
-            $output .= $this->plugin_info['extends_plugin_title'] . ' ';
-            $output .= __('plugin to be installed and active.', $this->plugin_un);
-            $output .= '</p>';
-            $output .= '</div>';
-          }
-        }
       }
 
       return $output;

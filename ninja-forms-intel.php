@@ -671,10 +671,14 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       $info = array(
         // The unique name for this plugin
         'plugin_un' => $this->plugin_un,
+        // Plugin version
+        'plugin_version' => NF_INTEL_VER,
         // Title of the plugin
         'plugin_title' => __('Ninja Forms Google Analytics Intelligence', $this->plugin_un),
         // Shorter version of title used when reduced characters are desired
         'plugin_title_short' => __('Ninja Forms GA Intelligence', $this->plugin_un),
+        // Plugin slug - name of directory containing plugin
+        'plugin_slug' => 'ninja-forms-intelligence',
         // Main plugin file
         'plugin_file' => 'ninja-forms-intel.php', // Main plugin file
         // The server path to the plugin files directory
