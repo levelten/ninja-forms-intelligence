@@ -4,9 +4,9 @@
  * Admin configuration management
  */
 
-include_once INTEL_DIR . 'includes/intel.wizard.inc';
+include_once INTEL_DIR . 'includes/intel.wizard.php';
 
-include_once INTEL_DIR . 'admin/intel.admin_setup.inc';
+include_once INTEL_DIR . 'admin/intel.admin_setup.php';
 
 function nf_intel_admin_setup_wizard_info($items = array()) {
   $sys_meta = get_option('intel_system_meta', array());
@@ -170,7 +170,7 @@ function nf_intel_admin_setup_intel_profile($form, &$form_state) {
   include_once INTEL_DIR . 'admin/intel.admin_setup.php';
   $options = array(
     'imapi_property_setup' => array(
-      'callback_destination' => Intel_Df::url('admin/config/intel/settings/setup/nf_intel'),
+      'callback_destination' => 'admin/config/intel/settings/setup/nf_intel',
     ),
   );
   return intel_admin_setup_intel_profile($form, $form_state, $options);
@@ -322,7 +322,7 @@ function nf_intel_admin_setup_finish($form, &$form_state) {
   $items[] = '<p>';
   $items[] = Intel_Df::t(__('You can customize form tracking in !extends_link or view the !intel_link.', 'nf_intel'),
     array(
-      '!extends_link' => Intel_Df::l(__('Ninja Forms settings', 'nf_intel'), 'wp-admin/admin.php?page=ninja-forms'),
+      '!extends_link' => Intel_Df::l(__('Ninja Forms settings', 'nf_intel'), 'admin.php?page=ninja-forms'),
       '!intel_link' => Intel_Df::l(__('Intelligence form settings list', 'nf_intel'), 'admin/config/intel/settings/form'),
     ));
   $items[] = '</p>';

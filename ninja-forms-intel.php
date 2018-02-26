@@ -233,7 +233,6 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       $submission->fid = $data['form_id'];
       $submission->form_title = $data['settings']['title'];
 
-
       $vars['submission_values'] = array();
       if (!empty($data['fields']) && is_array($data['fields'])) {
         foreach ($data['settings']['formContentData'] as $field) {
@@ -251,15 +250,6 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       if (!isset($intel_settings['intel_track_submission_value'])) {
         $intel_settings['intel_track_submission_value'] = get_option('intel_form_track_submission_value_default', '');
       }
-
-      /*
-      if (!isset($intel_settings['intel_tracking_event_name'])) {
-        $intel_settings['intel_tracking_event_name'] = get_option('intel_form_submission_tracking_event_name_default', 'form_submission');
-      }
-      if (!isset($intel_settings['intel_tracking_event_value'])) {
-        $intel_settings['intel_tracking_event_value'] = get_option('intel_form_submission_tracking_event_value_default', '');
-      }
-      */
 
       if (!empty($intel_settings) && is_array($intel_settings)) {
 
@@ -280,19 +270,6 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
           }
 
         }
-
-        /*
-        if (!empty($intel_settings['intel_tracking_event_name'])) {
-          $track['name'] = $intel_settings['intel_tracking_event_name'];
-          if (substr($track['name'], -1) == '-') {
-            $track['name'] = substr($track['name'], 0, -1);
-            $track['valued_event'] = 0;
-          }
-          if (!empty($intel_settings['intel_tracking_event_value'])) {
-            $track['value'] = $intel_settings['intel_tracking_event_value'];
-          }
-        }
-        */
 
         // process visitor_properties
         foreach ($intel_settings as $k => $v) {

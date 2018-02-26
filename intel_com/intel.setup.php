@@ -143,12 +143,12 @@ if (!is_callable('intel_setup')) {
 
       $type = !empty($options['type']) ? $options['type'] : 'error';
       $notice_class = "intel-setup notice notice-$type";
-      if (!empty($vars['inline'])) {
+      if (!empty($options['inline'])) {
         $notice_class .= " inline";
       }
 
       // check dependencies
-      if (!function_exists('intel_is_plugin_active')) {
+      if (!is_callable('intel_is_installed') || !intel_is_installed('min')) {
         $output .= '<div class="' . $notice_class . '">';
         $output .= '<p>';
         $output .= '<strong>' . __('Notice:') . '</strong> ';
@@ -760,6 +760,13 @@ if (!is_callable('intel_setup')) {
     set_transient('intel_activated_' . $plugin_slug, $value, 3600);
   }
 
+  /**
+   * Implements hook_activated_plugin()
+   *
+   * Checks for redirects after plugin has been activated. Assume
+   *
+   * @param $plugin
+   */
   function intel_setup_activated_plugin($plugin) {
     $a = explode('/', $plugin);
     $slug = $a[0];
@@ -774,7 +781,7 @@ if (!is_callable('intel_setup')) {
     delete_transient('intel_activated_' . $slug);
 
     if (!empty($info['destination'])) {
-      $info['redirect'] = Intel_Df::url($info['destination']);
+      $info['redirect'] = Intel_Df::url($info['destination'], array('absolute' => 1));
     }
     if (!empty($info['redirect'])) {
       // need to init role capabilities before redirect otherwise access will be
@@ -782,7 +789,7 @@ if (!is_callable('intel_setup')) {
       if ($slug == 'intelligence') {
         intel()->setup_role_caps();
       }
-      wp_redirect($info['redirect']);
+      Intel_Df::drupal_goto($info['redirect']);
       exit;
     }
   }

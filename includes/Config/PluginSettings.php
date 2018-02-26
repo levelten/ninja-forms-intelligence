@@ -5,7 +5,7 @@ $info = array();
 $connect_desc = __('Not connected.', 'nf_intel');
 $connect_desc .= ' ' . sprintf(
   __( ' %sSetup Intelligence%s', 'nf_intel' ),
-  '<a href="/wp-admin/admin.php?page=intel_admin&plugin=nf_intel&q=admin/config/intel/settings/setup/nf_intel" class="button">', '</a>'
+  '<a href="admin.php?page=intel_config&plugin=nf_intel&q=admin/config/intel/settings/setup/nf_intel" class="button">', '</a>'
 );
 if(NF_Intel()->is_intel_installed()) {
   $connect_desc = __('Connected');
