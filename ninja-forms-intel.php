@@ -4,7 +4,7 @@
  * Plugin Name: Ninja Forms - Intelligence
  * Plugin URI: https://ninjaforms.com/extensions/intelligence/
  * Description: Intelligent analytics for Ninja Forms
- * Version: 3.0.0.0-dev
+ * Version: 3.0.0
  * Author: LevelTen
  * Author URI: http://getlevelten.com/
  * Text Domain: nf_intel
@@ -12,7 +12,7 @@
  * Copyright 2017-2018 LevelTen Interactive.
  */
 
-define('NF_INTEL_VER', '3.0.0.0-dev');
+define('NF_INTEL_VER', '3.0.0');
 
 if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) || get_option( 'ninja_forms_load_deprecated', FALSE ) ) {
 
