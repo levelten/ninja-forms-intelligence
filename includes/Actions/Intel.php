@@ -55,7 +55,6 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
     }
     $prefix = $this->get_name() . '_';
 
-
     $eventgoal_options = intel_get_form_submission_eventgoal_options();
     $options = array();
     foreach ($eventgoal_options as $k => $l) {
@@ -83,7 +82,6 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
         '!add_goal' => $add_goal
       ));
     $settings[] = array(
-      //'name' => $prefix . 'tracking_event_name',
       'name' => $prefix . 'track_submission',
       'type' => 'select',
       'label' => __( 'Submission event/goal', 'nf_intel' ) . ' ' . $add_goal . '',
@@ -95,7 +93,6 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
 
     //$settings[$prefix . 'tracking_event_value'] = array(
     $settings[] = array(
-      //'name' => $prefix . 'tracking_event_value',
       'name' => $prefix . 'track_submission_value',
       'type' => 'textbox',
       'label' => __( 'Submission value', 'nf_intel' ),
@@ -117,7 +114,6 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       );
     }
     $settings[] = array(
-      //'name' => $prefix . 'tracking_event_name',
       'name' => $prefix . 'track_view',
       'type' => 'select',
       'label' => __( 'Track form views', 'nf_intel' ),
@@ -198,13 +194,16 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
 
     $settings = array_merge($fp, $fa);
 
-    $this->_settings[ $prefix . 'field_map_fields' ] = array(
-      'name' => 'field_map_fields',
-      'label' => __( 'Field map', 'nf_intel' ),
-      'type' => 'fieldset',
-      'group' => 'primary',
-      'settings' => $settings
-    );
+    if (intel_is_api_level('pro')) {
+      $this->_settings[ $prefix . 'field_map_fields' ] = array(
+        'name' => 'field_map_fields',
+        'label' => __( 'Field map', 'nf_intel' ),
+        'type' => 'fieldset',
+        'group' => 'primary',
+        'settings' => $settings
+      );
+    }
+
   }
 
   /*
