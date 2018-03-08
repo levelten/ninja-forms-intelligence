@@ -4,7 +4,7 @@
  * Plugin Name: Ninja Forms - Intelligence
  * Plugin URI: https://ninjaforms.com/extensions/intelligence/
  * Description: Intelligent analytics for Ninja Forms
- * Version: 3.0.1
+ * Version: 3.0.2
  * Author: LevelTen
  * Author URI: http://getlevelten.com/
  * Text Domain: nf_intel
@@ -12,7 +12,7 @@
  * Copyright 2017-2018 LevelTen Interactive.
  */
 
-define('NF_INTEL_VER', '3.0.1');
+define('NF_INTEL_VER', '3.0.2');
 
 if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) || get_option( 'ninja_forms_load_deprecated', FALSE ) ) {
 
@@ -25,7 +25,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
    */
   final class NF_Intel {
     const VERSION = NF_INTEL_VER;
-    const SLUG = 'intelligence';
+    const SLUG = 'intelligencewp';
     const NAME = 'Intelligence';
     const AUTHOR = 'LevelTen';
     const PREFIX = 'NF_Intel';
@@ -655,7 +655,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
         // Shorter version of title used when reduced characters are desired
         'plugin_title_short' => __('Ninja Forms GA Intelligence', $this->plugin_un),
         // Plugin slug - name of directory containing plugin
-        'plugin_slug' => 'ninja-forms-intelligence',
+        'plugin_slug' => 'ninja-forms-intelligencewp',
         // Main plugin file
         'plugin_file' => 'ninja-forms-intel.php', // Main plugin file
         // The server path to the plugin files directory
