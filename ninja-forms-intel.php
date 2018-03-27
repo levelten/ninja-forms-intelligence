@@ -4,7 +4,7 @@
  * Plugin Name: Ninja Forms - Intelligence
  * Plugin URI: https://ninjaforms.com/extensions/intelligence/
  * Description: Intelligent analytics for Ninja Forms
- * Version: 3.0.2
+ * Version: 3.0.3.0-dev
  * Author: LevelTen
  * Author URI: http://getlevelten.com/
  * Text Domain: nf_intel
@@ -12,7 +12,7 @@
  * Copyright 2017-2018 LevelTen Interactive.
  */
 
-define('NF_INTEL_VER', '3.0.2');
+define('NF_INTEL_VER', '3.0.3.0-dev');
 
 if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) || get_option( 'ninja_forms_load_deprecated', FALSE ) ) {
 
@@ -167,6 +167,9 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
 
       // Register hook_intel_test_url_parsing_alter()
       add_filter('intel_test_url_parsing_alter', array( $this, 'intel_test_url_parsing_alter'));
+
+      // Register hook_form_FORM_ID_alter() for FORM_ID=
+      add_action('intel_form_alter', array($this, 'intel_form_intel_visitor_delete_confirm_form_alter'), 10, 2);
     }
 
     public function ninja_forms_display_after_form($form_id, $is_preview = 0) {
@@ -1035,6 +1038,26 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       $urls[] = "urn::{$this->form_type_un}:1:1";
       return $urls;
     }
+
+    /**
+     * Implements hook_form_FORM_ID_alter()
+     */
+    function intel_form_intel_visitor_delete_confirm_form_alter(&$form, &$form_state) {
+      $form['nf_intel_submission_delete'] = array(
+        '#type' => 'checkbox',
+        '#title' => __( 'Delete Ninja Forms submissions including this visitors\' email address(es).'),
+        '#default_value' => 1,
+      );
+      $form['#submit'][] = array( $this, 'intel_form_intel_visitor_delete_confirm_form_submit' );
+    }
+
+    /**
+     * Processes hook_form_FORM_ID_alter() options
+     */
+    function intel_form_intel_visitor_delete_confirm_form_submit(&$form, &$form_state) {
+      intel_d($form_state['values']);
+    }
+
   }
 
   /**
