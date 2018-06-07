@@ -4,7 +4,7 @@ Donate link: getlevelten.com/blog/tom
 Tags: analytics, contact, contact form, form, google analytics, marketing, metrics, stats, tracking, web form
 Requires at least: 4.5
 Tested up to: 4.9.2
-Stable tag: 3.0.3.0-dev
+Stable tag: 3.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,9 @@ Embed Google Analytics tracking code if site does not already embed tracking cod
 5. Set a default goal to make sure no form submissions are missed
 
 == Changelog ==
+
+= 3.0.4 =
+* Fix performance issue caused with some server configurations
 
 = 1.0.0 =
 * Initial version

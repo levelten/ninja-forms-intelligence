@@ -46,7 +46,6 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
 
     $this->_settings =  array_merge( $this->_settings, $settings );
 
-//Intel_Df::watchdog('NF_Intel_Actions_Intel', 'YEAH!');
   }
 
   public function init_settings() {
@@ -131,70 +130,71 @@ final class NF_Intel_Actions_Intel extends NF_Abstracts_Action
       'settings' => $settings
     );
 
-    $settings = array();
+    if (intel_is_api_level('pro')) {
 
-    $prop_info = intel()->visitor_property_info();
+      $settings = array();
 
-    $prop_wf_info = intel()->visitor_property_webform_info();
+      $prop_info = intel()->visitor_property_info();
 
-    $priority = array(
-      'data.name' => 1,
-      'data.givenName' => 1,
-      'data.familyName' => 1,
-      'data.email' => 1,
-    );
+      $prop_wf_info = intel()->visitor_property_webform_info();
 
-    $fp = array();
-    $fa = array();
-    //foreach ($prop_info as $k => $v) {
-    foreach ($prop_wf_info as $k => $v) {
-      $pi = $prop_info[$k];
-      if (!empty($priority[$k])) {
-        $f = &$fp;
-      }
-      else {
-        $f = &$fa;
-      }
+      $priority = array(
+        'data.name' => 1,
+        'data.givenName' => 1,
+        'data.familyName' => 1,
+        'data.email' => 1,
+      );
 
-      if (array_key_exists('@value', $pi['variables'])) {
-        $key = $k;
-        $title = !empty($v['title']) ? $v['title'] : $pi['title'];
-        $f[] = array(
-          'name' => $prefix . 'prop_' . $key,
-          'type' => 'textbox',
-          'label' => $title,
-          'width' => 'full',
-          'use_merge_tags' => array(
-            'exclude' => array(
-              'user', 'post', 'system', 'querystrings'
-            )
-          )
-        );
-      }
-      if (!empty($v['variables'])) {
-        foreach ($v['variables'] as $kk => $vv) {
-          if ($pi['variables'][$kk] != '@value') {
-            $key2 = $prefix . 'prop_' . $key . "__$kk";
-            $f[] = array(
-              'name' => $key2,
-              'type' => 'textbox',
-              'label' => $title  . ': ' . (!empty($vv['title']) ? $vv['title'] : $kk),
-              'width' => 'full',
-              'use_merge_tags' => array(
-                'exclude' => array(
-                  'user', 'post', 'system', 'querystrings'
-                )
+      $fp = array();
+      $fa = array();
+      //foreach ($prop_info as $k => $v) {
+      foreach ($prop_wf_info as $k => $v) {
+        $pi = $prop_info[$k];
+        if (!empty($priority[$k])) {
+          $f = &$fp;
+        }
+        else {
+          $f = &$fa;
+        }
+
+        if (array_key_exists('@value', $pi['variables'])) {
+          $key = $k;
+          $title = !empty($v['title']) ? $v['title'] : $pi['title'];
+          $f[] = array(
+            'name' => $prefix . 'prop_' . $key,
+            'type' => 'textbox',
+            'label' => $title,
+            'width' => 'full',
+            'use_merge_tags' => array(
+              'exclude' => array(
+                'user', 'post', 'system', 'querystrings'
               )
-            );
+            )
+          );
+        }
+        if (!empty($v['variables'])) {
+          foreach ($v['variables'] as $kk => $vv) {
+            if ($pi['variables'][$kk] != '@value') {
+              $key2 = $prefix . 'prop_' . $key . "__$kk";
+              $f[] = array(
+                'name' => $key2,
+                'type' => 'textbox',
+                'label' => $title  . ': ' . (!empty($vv['title']) ? $vv['title'] : $kk),
+                'width' => 'full',
+                'use_merge_tags' => array(
+                  'exclude' => array(
+                    'user', 'post', 'system', 'querystrings'
+                  )
+                )
+              );
+            }
           }
         }
+
       }
 
-    }
+      $settings = array_merge($fp, $fa);
 
-    $settings = array_merge($fp, $fa);
-
-    if (intel_is_api_level('pro')) {
       $this->_settings[ $prefix . 'field_map_fields' ] = array(
         'name' => 'field_map_fields',
         'label' => __( 'Field map', 'nf_intel' ),
