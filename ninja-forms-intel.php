@@ -1043,19 +1043,21 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
      * Implements hook_form_FORM_ID_alter()
      */
     function intel_form_intel_visitor_delete_confirm_form_alter(&$form, &$form_state) {
+      /*
       $form['nf_intel_submission_delete'] = array(
         '#type' => 'checkbox',
         '#title' => __( 'Delete Ninja Forms submissions including this visitors\' email address(es).'),
         '#default_value' => 1,
       );
       $form['#submit'][] = array( $this, 'intel_form_intel_visitor_delete_confirm_form_submit' );
+      */
     }
 
     /**
      * Processes hook_form_FORM_ID_alter() options
      */
     function intel_form_intel_visitor_delete_confirm_form_submit(&$form, &$form_state) {
-      intel_d($form_state['values']);
+
     }
 
   }
