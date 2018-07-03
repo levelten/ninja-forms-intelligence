@@ -903,7 +903,7 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
      * Implements hook_intel_form_type_FORM_TYPE_UN_form_info()
      */
     public function intel_form_type_form_info($data = NULL, $options = array()) {
-      $data = &Intel_Df::drupal_static( __FUNCTION__, array());
+      $data = &Intel_Df::drupal_static( __METHOD__, array());
 
       if (!empty($data) && empty($options['refresh'])) {
         return $data;
