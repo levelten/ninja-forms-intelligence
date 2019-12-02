@@ -4,7 +4,7 @@
  * Plugin Name: Ninja Forms - Intelligence
  * Plugin URI: https://ninjaforms.com/extensions/intelligence/
  * Description: Intelligent analytics for Ninja Forms
- * Version: 3.0.4.0-dev
+ * Version: 3.0.5
  * Author: LevelTen
  * Author URI: http://getlevelten.com/
  * Text Domain: nf_intel
@@ -12,7 +12,7 @@
  * Copyright 2017-2018 LevelTen Interactive.
  */
 
-define('NF_INTEL_VER', '3.0.4.0-dev');
+define('NF_INTEL_VER', '3.0.5');
 
 if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) || get_option( 'ninja_forms_load_deprecated', FALSE ) ) {
 
@@ -201,13 +201,14 @@ if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) ||
       $def = array(
         'selector' => '#nf-form-' . $form_id . '-cont',
         'trackView' => $trackView,
+        //'trackSubmission' => 1,
         'formType' => $this->form_type_un,
         'formTitle' => $form->get_setting('title'),
         'formId' => $form_id,
       );
-      //intel_add_page_intel_push(array('formtracker:trackForm', $def));
+      intel_add_page_intel_push(array('formtracker:trackForm', $def));
 
-      print "<script>io('formtracker:trackForm', " . json_encode($def) . ");</script>";
+      //print "<script>io('formtracker:trackForm', " . json_encode($def) . ");</script>";
 
     }
 
